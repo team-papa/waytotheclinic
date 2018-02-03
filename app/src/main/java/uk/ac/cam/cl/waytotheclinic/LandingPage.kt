@@ -1,4 +1,4 @@
-package uk.ac.cam.cl.waytoclinic.waytotheclinic
+package uk.ac.cam.cl.waytotheclinic
 
 import android.support.v7.app.AppCompatActivity
 import android.os.Bundle

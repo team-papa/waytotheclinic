@@ -1,4 +1,4 @@
-package uk.ac.cam.cl.waytoclinic.waytotheclinic
+package uk.ac.cam.cl.waytotheclinic
 
 import org.junit.Test
 
