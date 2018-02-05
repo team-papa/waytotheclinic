@@ -1,6 +1,7 @@
 package uk.ac.cam.cl.waytotheclinic
 
 import android.animation.LayoutTransition
+import android.content.res.ColorStateList
 import android.os.Build
 import android.support.v7.app.AppCompatActivity
 import android.os.Bundle
@@ -12,9 +13,9 @@ import android.widget.AutoCompleteTextView
 import android.widget.ArrayAdapter
 import kotlinx.android.synthetic.main.activity_landing_page.*
 import android.widget.Toast
-
-
-
+import android.support.constraint.ConstraintSet
+import android.support.v4.content.ContextCompat
+import android.support.v4.widget.ImageViewCompat
 
 
 class LandingPage : AppCompatActivity() {
@@ -54,7 +55,7 @@ class LandingPage : AppCompatActivity() {
         var y1: Float = 0.0F
         var y2: Float = 0.0F
         var minSwipeDist: Float = 50.0F
-
+        val constraintSet = ConstraintSet()
         val swipeListener = View.OnTouchListener { view, motionEvent ->
             when (motionEvent.getAction()) {
 
@@ -68,13 +69,30 @@ class LandingPage : AppCompatActivity() {
                     if (y2 - y1 > minSwipeDist) {
                         Toast.makeText(this@LandingPage, "Down swipe", Toast.LENGTH_SHORT).show()
                         val params = top_green_box.getLayoutParams()
-                        params.height = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 300.0F, getResources().displayMetrics).toInt()
+                        params.height = dpToPx(300.0F)
                         top_green_box.setLayoutParams(params)
+
+                        //menu_button.setColorFilter(R.color.colorWhite)
+                        ImageViewCompat.setImageTintList(menu_button, ColorStateList.valueOf(ContextCompat.getColor
+                        (this@LandingPage, R.color.colorWhite)));
+
+                        constraintSet.clone(top_green_box)
+                        constraintSet.connect(R.id.places_list, ConstraintSet.START, R.id.top_white_box, ConstraintSet.START, dpToPx(8.0F))
+                        constraintSet.applyTo(top_green_box)
                     } else if (y1 - y2 > minSwipeDist) {
                         Toast.makeText(this@LandingPage, "Up swipe", Toast.LENGTH_SHORT).show()
                         val params = top_green_box.getLayoutParams()
-                        params.height = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 60.0F, getResources().displayMetrics).toInt()
+                        params.height = dpToPx(60.0F)
                         top_green_box.setLayoutParams(params)
+
+
+                        ImageViewCompat.setImageTintList(menu_button, ColorStateList.valueOf(ContextCompat.getColor
+                        (this@LandingPage, R.color.colorDarkGreen)));
+
+                        constraintSet.clone(top_green_box)
+                        constraintSet.connect(R.id.places_list, ConstraintSet.START, R.id.menu_button, ConstraintSet.END, dpToPx(12.0F))
+                        constraintSet.applyTo(top_green_box)
+
                     }
                     true
                 }
@@ -84,6 +102,11 @@ class LandingPage : AppCompatActivity() {
 
         top_green_box.setOnTouchListener(swipeListener);
         menu_button.setOnTouchListener(swipeListener);
+    }
+
+
+    fun dpToPx(value: Float) : Int {
+        return TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, value, getResources().displayMetrics).toInt()
     }
 
 }
