@@ -57,6 +57,7 @@
             android:layout_marginTop="8dp"
             android:background="@drawable/rounded_view"
             android:backgroundTint="@color/colorWhite"
+            android:focusedByDefault="true"
             android:hint="@string/search_hint"
             android:imeActionLabel="Search"
             android:imeOptions="actionSearch"
@@ -65,10 +66,24 @@
             android:popupBackground="@color/colorWhite"
             android:text=""
             android:textColor="@color/colorDarkGrey"
+            android:textCursorDrawable="@drawable/color_cursor"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="@+id/top_white_box"
             app:layout_constraintTop_toTopOf="parent" />
+
+        <CheckBox
+            android:id="@+id/checkBox"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="8dp"
+            android:layout_marginTop="8dp"
+            android:button="@null"
+            android:drawableRight="@drawable/checkbox_selector"
+            android:text="Lift only "
+            android:textColor="@color/colorWhite"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/places_list" />
     </android.support.constraint.ConstraintLayout>
 
     <fragment

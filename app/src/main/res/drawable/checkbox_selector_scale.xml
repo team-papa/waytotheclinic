@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<scale xmlns:android="http://schemas.android.com/apk/res/android"
+    android:drawable="@drawable/checkbox_selector"
+    android:scaleGravity="center_vertical|center_horizontal"
+    android:scaleHeight="25%"
+    android:scaleWidth="25%"/>
+    <selector xmlns:android="http://schemas.android.com/apk/res/android">
+        <item android:state_checked="true" android:drawable="@drawable/checked_checkbox" />
+        <item android:state_checked="false" android:drawable="@drawable/unchecked_checkbox" />
+    </selector>
+</scale>
