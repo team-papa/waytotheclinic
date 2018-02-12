@@ -2,4 +2,7 @@
     <string name="app_name">Way To The Clinic</string>
     <string name="search_hint">Where to today?</string>
     <string name="title_activity_maps">Map</string>
+
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
 </resources>

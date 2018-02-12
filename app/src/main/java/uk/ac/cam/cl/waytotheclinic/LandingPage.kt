@@ -27,10 +27,6 @@ class LandingPage : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_landing_page)
 
-        mapFragment = Fragment.instantiate(this@LandingPage, MapFragment::class.java.getName()) as MapFragment?
-
-        supportFragmentManager.beginTransaction().replace(R.id.map_id, mapFragment as Fragment)
-
         val adapter = ArrayAdapter<String>(this,
                 android.R.layout.simple_dropdown_item_1line, PLACES)
         val textView = findViewById<AutoCompleteTextView>(R.id.places_list)
