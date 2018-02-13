@@ -112,27 +112,45 @@ class LandingPage : AppCompatActivity() {
         menu_button.setOnTouchListener(swipeListener);
 
         if (ContextCompat.checkSelfPermission(this,
-                Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+                Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+            var mFusedLocationClient: FusedLocationProviderClient =
+                    LocationServices.getFusedLocationProviderClient(this)
+            mFusedLocationClient.getLastLocation()
+                    .addOnSuccessListener(this, OnSuccessListener<Location> { location ->
+                        if (location != null) {
+                            mCurrentLocation = location
+                            val latitude = findViewById(R.id.latitudeText) as TextView
+                            latitude.setText("Latitude: ${location.latitude.toString()}")
+                            val longitude = findViewById(R.id.longitudeText) as TextView
+                            longitude.setText("Longitude: ${location.longitude.toString()}")
 
+                        }
+                    })
+        }
+        else {
             ActivityCompat.requestPermissions(this,
                     arrayOf(Manifest.permission.ACCESS_COARSE_LOCATION),
                     MY_PERMISSIONS_REQUEST_ACCESS_COARSE_LOCATION)
         }
-        while((ContextCompat.checkSelfPermission(this,
-                        Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED));
+    }
+
+    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
         var mFusedLocationClient: FusedLocationProviderClient =
                 LocationServices.getFusedLocationProviderClient(this)
-        mFusedLocationClient.getLastLocation()
-                .addOnSuccessListener(this, OnSuccessListener<Location> { location ->
-                    if (location != null) {
-                        mCurrentLocation = location
-                        val latitude = findViewById(R.id.latitudeText) as TextView
-                        latitude.setText("Latitude: ${location.latitude.toString()}")
-                        val longitude = findViewById(R.id.longitudeText) as TextView
-                        longitude.setText("Longitude: ${location.longitude.toString()}")
-
-                    }
-                })
+        if (ContextCompat.checkSelfPermission(this,
+                        Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+            mFusedLocationClient.getLastLocation()
+                    .addOnSuccessListener(this, OnSuccessListener<Location> { location ->
+                if (location != null) {
+                    mCurrentLocation = location
+                    val latitude = findViewById(R.id.latitudeText) as TextView
+                    latitude.setText("Latitude: ${location.latitude.toString()}")
+                    val longitude = findViewById(R.id.longitudeText) as TextView
+                    longitude.setText("Longitude: ${location.longitude.toString()}")
+                }
+            })
+        }
     }
 
     fun dpToPx(value: Float) : Int {
