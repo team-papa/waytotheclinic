@@ -29,6 +29,7 @@ class LandingPage : AppCompatActivity() {
     private var mapFragment: MapFragment? = null
     private val PLACES = arrayOf("Belgium", "France", "Italy", "Germany", "Spain")
     private val MY_PERMISSIONS_REQUEST_ACCESS_COARSE_LOCATION = 1
+    private var mCurrentLocation: Location? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -111,25 +112,28 @@ class LandingPage : AppCompatActivity() {
         menu_button.setOnTouchListener(swipeListener);
 
         if (ContextCompat.checkSelfPermission(this,
-                        Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+                Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
 
             ActivityCompat.requestPermissions(this,
                     arrayOf(Manifest.permission.ACCESS_COARSE_LOCATION),
                     MY_PERMISSIONS_REQUEST_ACCESS_COARSE_LOCATION)
         }
+        while((ContextCompat.checkSelfPermission(this,
+                        Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED));
         var mFusedLocationClient: FusedLocationProviderClient =
                 LocationServices.getFusedLocationProviderClient(this)
         mFusedLocationClient.getLastLocation()
                 .addOnSuccessListener(this, OnSuccessListener<Location> { location ->
                     if (location != null) {
+                        mCurrentLocation = location
                         val latitude = findViewById(R.id.latitudeText) as TextView
-                        latitude.setText("Latitude: " + location.latitude.toString())
+                        latitude.setText("Latitude: ${location.latitude.toString()}")
                         val longitude = findViewById(R.id.longitudeText) as TextView
-                        longitude.setText("Longitude: " + location.longitude.toString())
+                        longitude.setText("Longitude: ${location.longitude.toString()}")
+
                     }
                 })
     }
-
 
     fun dpToPx(value: Float) : Int {
         return TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, value, getResources().displayMetrics).toInt()
