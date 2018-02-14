@@ -13,14 +13,15 @@
         android:id="@+id/mapView"
         android:layout_width="0dp"
         android:layout_height="0dp"
+        android:layout_margin="0dp"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
         app:layout_constraintTop_toTopOf="parent"
+        map:uiCompass="false"
         map:uiRotateGestures="false"
         map:uiScrollGestures="true"
         map:uiTiltGestures="false"
-        map:uiZoomGestures="true"
         map:uiZoomControls="false"
-        map:uiCompass="false"/>
+        map:uiZoomGestures="true" />
 </android.support.constraint.ConstraintLayout>

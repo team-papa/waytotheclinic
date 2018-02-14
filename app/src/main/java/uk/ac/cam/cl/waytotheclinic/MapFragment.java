@@ -1,7 +1,9 @@
 package uk.ac.cam.cl.waytotheclinic;
 
 import android.graphics.Bitmap;
+import android.graphics.Canvas;
 import android.graphics.Color;
+import android.graphics.Paint;
 import android.graphics.drawable.BitmapDrawable;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
@@ -16,10 +18,14 @@ import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.model.TileOverlayOptions;
 import com.google.android.gms.maps.model.TileProvider;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class MapFragment extends android.support.v4.app.Fragment implements OnMapReadyCallback{
     MapView mapView = null;
     GoogleMap googleMap;
-    public TileProvider tileProvider;
+    public TileProvider mapTileProvider;
+    public TileProvider pathTileProvider;
 
     @Nullable
     @Override
@@ -34,10 +40,34 @@ public class MapFragment extends android.support.v4.app.Fragment implements OnMa
         this.googleMap = googleMap;
         googleMap.setMapType(GoogleMap.MAP_TYPE_NONE);
 
-        Bitmap image = ((BitmapDrawable)ContextCompat.getDrawable(getContext(), R.drawable.test_map)).getBitmap();
-        tileProvider = new MapTileProvider(image, googleMap);
+        Bitmap map = ((BitmapDrawable)ContextCompat.getDrawable(getContext(), R.drawable.test_map)).getBitmap();
+        mapTileProvider = new MapTileProvider(map, googleMap);
+        googleMap.addTileOverlay(new TileOverlayOptions().tileProvider(mapTileProvider).zIndex(1));
 
-        googleMap.addTileOverlay(new TileOverlayOptions().tileProvider(tileProvider));
+        Bitmap testPath = Bitmap.createBitmap(map.getWidth(), map.getHeight(), map.getConfig());
+        List<Pair> points = new ArrayList<>();
+        {
+            String testCoordString = getString(R.string.test_path);
+            for(String s : testCoordString.split(";")){
+                String temp = s.substring(1, s.length() - 1);
+                String[] vals = temp.split(", ");
+                points.add(new Pair(Integer.decode(vals[0]), Integer.decode(vals[1])));
+            }
+        }
+        createPathFromString(testPath, points);
+        pathTileProvider = new MapTileProvider(testPath, googleMap);
+        googleMap.addTileOverlay(new TileOverlayOptions().tileProvider(pathTileProvider).zIndex(2));
+    }
+
+    public static void createPathFromString(Bitmap map, List<Pair> coords){
+        Canvas canvas = new Canvas(map);
+        canvas.drawColor(Color.TRANSPARENT);
+        Paint paint = new Paint();
+        paint.setARGB(255, 255, 0, 0);
+        for(Pair p : coords){
+            canvas.drawPoint(p.a, p.b, paint);
+        }
+        map.prepareToDraw();
     }
 
     //region android boilerplate to get mapView working
@@ -132,4 +162,10 @@ public class MapFragment extends android.support.v4.app.Fragment implements OnMa
     }
 
     //endregion
+
+    private class Pair{
+        int a;
+        int b;
+        public Pair(int A, int B){a = A; b = B;}
+    }
 }

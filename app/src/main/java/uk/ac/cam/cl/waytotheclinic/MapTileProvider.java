@@ -31,7 +31,9 @@ public class MapTileProvider implements TileProvider{
         this.baseImage = Bitmap.createBitmap(TileWidth, TileWidth, baseImage.getConfig());
         Canvas canvas = new Canvas(this.baseImage);
         canvas.drawColor(backgourndColor);
-        canvas.drawBitmap(baseImage, 0, 0, null);
+        int startX = TileWidth / 2 - baseImage.getWidth() / 2;
+        int startY = TileWidth / 2 - baseImage.getHeight() / 2;
+        canvas.drawBitmap(baseImage, startX, startY, null);
 
         genNO_TILE(TileWidth, TileWidth);
         this.map = map;
@@ -54,7 +56,7 @@ public class MapTileProvider implements TileProvider{
 
     private Tile bitmapToTile(Bitmap bmp){
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        bmp.compress(Bitmap.CompressFormat.PNG, 100, baos);
+        bmp.compress(Bitmap.CompressFormat.WEBP, 100, baos);
         return new Tile(bmp.getWidth(), bmp.getHeight(), baos.toByteArray());
     }
 
