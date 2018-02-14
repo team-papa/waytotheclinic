@@ -24,4 +24,5 @@
         map:uiTiltGestures="false"
         map:uiZoomControls="false"
         map:uiZoomGestures="true" />
+
 </android.support.constraint.ConstraintLayout>

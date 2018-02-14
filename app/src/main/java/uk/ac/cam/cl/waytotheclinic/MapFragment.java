@@ -11,10 +11,12 @@ import android.support.v4.content.ContextCompat;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapView;
 import com.google.android.gms.maps.OnMapReadyCallback;
+import com.google.android.gms.maps.model.TileOverlay;
 import com.google.android.gms.maps.model.TileOverlayOptions;
 import com.google.android.gms.maps.model.TileProvider;
 
@@ -25,7 +27,9 @@ public class MapFragment extends android.support.v4.app.Fragment implements OnMa
     MapView mapView = null;
     GoogleMap googleMap;
     public TileProvider mapTileProvider;
+    public TileOverlay mapOverlay;
     public TileProvider pathTileProvider;
+    public TileOverlay pathOverlay;
 
     @Nullable
     @Override
@@ -41,8 +45,8 @@ public class MapFragment extends android.support.v4.app.Fragment implements OnMa
         googleMap.setMapType(GoogleMap.MAP_TYPE_NONE);
 
         Bitmap map = ((BitmapDrawable)ContextCompat.getDrawable(getContext(), R.drawable.test_map)).getBitmap();
-        mapTileProvider = new MapTileProvider(map, googleMap);
-        googleMap.addTileOverlay(new TileOverlayOptions().tileProvider(mapTileProvider).zIndex(1));
+        mapTileProvider = new MapTileProvider(map, googleMap, Color.WHITE);
+        mapOverlay = googleMap.addTileOverlay(new TileOverlayOptions().tileProvider(mapTileProvider).zIndex(1));
 
         Bitmap testPath = Bitmap.createBitmap(map.getWidth(), map.getHeight(), map.getConfig());
         List<Pair> points = new ArrayList<>();
@@ -55,8 +59,8 @@ public class MapFragment extends android.support.v4.app.Fragment implements OnMa
             }
         }
         createPathFromString(testPath, points);
-        pathTileProvider = new MapTileProvider(testPath, googleMap);
-        googleMap.addTileOverlay(new TileOverlayOptions().tileProvider(pathTileProvider).zIndex(2));
+        pathTileProvider = new MapTileProvider(testPath, googleMap, Color.TRANSPARENT);
+        pathOverlay = googleMap.addTileOverlay(new TileOverlayOptions().tileProvider(pathTileProvider).zIndex(2));
     }
 
     public static void createPathFromString(Bitmap map, List<Pair> coords){
@@ -64,8 +68,13 @@ public class MapFragment extends android.support.v4.app.Fragment implements OnMa
         canvas.drawColor(Color.TRANSPARENT);
         Paint paint = new Paint();
         paint.setARGB(255, 255, 0, 0);
+        double scaling = 1.868;
         for(Pair p : coords){
-            canvas.drawPoint(p.a, p.b, paint);
+//            canvas.drawPoint((int)Math.floor(p.a * scaling), (int)Math.floor(p.b * scaling), paint);
+            int radius = 2;
+            int x = (int)Math.floor(p.a * scaling);
+            int y = (int)Math.floor(p.b * scaling);
+            canvas.drawCircle(x, y, radius, paint);
         }
         map.prepareToDraw();
     }

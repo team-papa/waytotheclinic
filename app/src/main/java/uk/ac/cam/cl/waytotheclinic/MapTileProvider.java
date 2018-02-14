@@ -19,14 +19,15 @@ public class MapTileProvider implements TileProvider{
     GoogleMap map;
     public Tile NO_TILE;
     public int TileWidth;
-    int backgourndColor = Color.WHITE;
+    int backgourndColor;
 
-    public MapTileProvider(Bitmap baseImage, GoogleMap map){
+    public MapTileProvider(Bitmap baseImage, GoogleMap map, int backgourndColor){
         //calculate the optimal tile size, min n for 2^n > max(width, height)
         int maxDim = Math.max(baseImage.getHeight(), baseImage.getWidth());
         int tileWidthPower = 1;
         for(; Math.pow(2, tileWidthPower) < maxDim; tileWidthPower++);
         TileWidth = (int)Math.pow(2, tileWidthPower);
+        this.backgourndColor = backgourndColor;
 
         this.baseImage = Bitmap.createBitmap(TileWidth, TileWidth, baseImage.getConfig());
         Canvas canvas = new Canvas(this.baseImage);
