@@ -1,7 +1,10 @@
 package uk.ac.cam.cl.waytotheclinic
 
+import android.Manifest
 import android.animation.LayoutTransition
+import android.content.pm.PackageManager
 import android.content.res.ColorStateList
+import android.location.Location
 import android.os.Build
 import android.support.v7.app.AppCompatActivity
 import android.os.Bundle
@@ -9,19 +12,24 @@ import android.support.v4.app.Fragment
 import android.util.TypedValue
 import android.view.MotionEvent
 import android.view.View
-import android.widget.AutoCompleteTextView
-import android.widget.ArrayAdapter
 import kotlinx.android.synthetic.main.activity_landing_page.*
-import android.widget.Toast
 import android.support.constraint.ConstraintSet
+import android.support.v4.app.ActivityCompat
 import android.support.v4.content.ContextCompat
 import android.support.v4.widget.ImageViewCompat
+import android.widget.*
+import android.widget.TextView
+import com.google.android.gms.location.FusedLocationProviderClient
+import com.google.android.gms.location.LocationServices
+import com.google.android.gms.tasks.OnSuccessListener
 
 
 class LandingPage : AppCompatActivity() {
 
     private var mapFragment: MapFragment? = null
     private val PLACES = arrayOf("Belgium", "France", "Italy", "Germany", "Spain")
+    private val MY_PERMISSIONS_REQUEST_ACCESS_COARSE_LOCATION = 1
+    private var mCurrentLocation: Location? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -98,8 +106,48 @@ class LandingPage : AppCompatActivity() {
 
         top_green_box.setOnTouchListener(swipeListener);
         menu_button.setOnTouchListener(swipeListener);
+
+        if (ContextCompat.checkSelfPermission(this,
+                Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+            var mFusedLocationClient: FusedLocationProviderClient =
+                    LocationServices.getFusedLocationProviderClient(this)
+            mFusedLocationClient.getLastLocation()
+                    .addOnSuccessListener(this, OnSuccessListener<Location> { location ->
+                        if (location != null) {
+                            mCurrentLocation = location
+                            val latitude = findViewById(R.id.latitudeText) as TextView
+                            latitude.setText("Latitude: ${location.latitude.toString()}")
+                            val longitude = findViewById(R.id.longitudeText) as TextView
+                            longitude.setText("Longitude: ${location.longitude.toString()}")
+
+                        }
+                    })
+        }
+        else {
+            ActivityCompat.requestPermissions(this,
+                    arrayOf(Manifest.permission.ACCESS_COARSE_LOCATION),
+                    MY_PERMISSIONS_REQUEST_ACCESS_COARSE_LOCATION)
+        }
     }
 
+    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        var mFusedLocationClient: FusedLocationProviderClient =
+                LocationServices.getFusedLocationProviderClient(this)
+        if (ContextCompat.checkSelfPermission(this,
+                        Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+            mFusedLocationClient.getLastLocation()
+                    .addOnSuccessListener(this, OnSuccessListener<Location> { location ->
+                if (location != null) {
+                    mCurrentLocation = location
+                    val latitude = findViewById(R.id.latitudeText) as TextView
+                    latitude.setText("Latitude: ${location.latitude.toString()}")
+                    val longitude = findViewById(R.id.longitudeText) as TextView
+                    longitude.setText("Longitude: ${location.longitude.toString()}")
+                }
+            })
+        }
+    }
 
     fun dpToPx(value: Float) : Int {
         return TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, value, getResources().displayMetrics).toInt()
