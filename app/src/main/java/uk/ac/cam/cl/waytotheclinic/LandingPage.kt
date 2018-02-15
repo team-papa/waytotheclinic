@@ -22,13 +22,15 @@ import android.widget.TextView
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
 import com.google.android.gms.tasks.OnSuccessListener
+import com.google.android.gms.location.LocationRequest
+import com.google.android.gms.location.LocationSettingsRequest
 
 
 class LandingPage : AppCompatActivity() {
 
     private var mapFragment: MapFragment? = null
     private val PLACES = arrayOf("Belgium", "France", "Italy", "Germany", "Spain")
-    private val MY_PERMISSIONS_REQUEST_ACCESS_COARSE_LOCATION = 1
+    private val MY_PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION = 1
     private var mCurrentLocation: Location? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -112,9 +114,47 @@ class LandingPage : AppCompatActivity() {
         menu_button.setOnTouchListener(swipeListener);
 
         if (ContextCompat.checkSelfPermission(this,
-                Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
-            var mFusedLocationClient: FusedLocationProviderClient =
-                    LocationServices.getFusedLocationProviderClient(this)
+                Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+            //val location = LocationLibrary.getLocation(this)
+            //displayLatitude(location)
+            //displayLongitude(location)
+            //displayAccuracy(location)
+            //getLocation()
+            getLocation();
+        }
+        else {
+            ActivityCompat.requestPermissions(this,
+                    arrayOf(Manifest.permission.ACCESS_FINE_LOCATION),
+                    MY_PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION)
+        }
+    }
+
+    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        var location = LocationLibrary.getLocation(this) as Location
+        //displayLatitude(location)
+        //displayLongitude(location)
+        //displayAccuracy(location)
+    }
+
+    fun displayLatitude(location: Location?) {
+        val latitude = findViewById(R.id.latitudeText) as TextView
+        latitude.setText("Latitude: ${location?.latitude.toString()}")
+    }
+    fun displayLongitude(location: Location?) {
+        val longitude = findViewById(R.id.longitudeText) as TextView
+        longitude.setText("Longitude: ${location?.longitude.toString()}")
+    }
+    fun displayAccuracy(location: Location?) {
+        val accuracy = findViewById(R.id.accuracyText) as TextView
+        accuracy.setText("Accuracy: ${location?.accuracy.toString()}")
+    }
+
+    fun getLocation() {
+        var mFusedLocationClient: FusedLocationProviderClient =
+                LocationServices.getFusedLocationProviderClient(this)
+        if (ContextCompat.checkSelfPermission(this,
+                        Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
             mFusedLocationClient.getLastLocation()
                     .addOnSuccessListener(this, OnSuccessListener<Location> { location ->
                         if (location != null) {
@@ -123,33 +163,10 @@ class LandingPage : AppCompatActivity() {
                             latitude.setText("Latitude: ${location.latitude.toString()}")
                             val longitude = findViewById(R.id.longitudeText) as TextView
                             longitude.setText("Longitude: ${location.longitude.toString()}")
-
+                            val accuracy = findViewById(R.id.accuracyText) as TextView
+                            accuracy.setText("Accuracy: ${location.accuracy.toString()}")
                         }
                     })
-        }
-        else {
-            ActivityCompat.requestPermissions(this,
-                    arrayOf(Manifest.permission.ACCESS_COARSE_LOCATION),
-                    MY_PERMISSIONS_REQUEST_ACCESS_COARSE_LOCATION)
-        }
-    }
-
-    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-        var mFusedLocationClient: FusedLocationProviderClient =
-                LocationServices.getFusedLocationProviderClient(this)
-        if (ContextCompat.checkSelfPermission(this,
-                        Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
-            mFusedLocationClient.getLastLocation()
-                    .addOnSuccessListener(this, OnSuccessListener<Location> { location ->
-                if (location != null) {
-                    mCurrentLocation = location
-                    val latitude = findViewById(R.id.latitudeText) as TextView
-                    latitude.setText("Latitude: ${location.latitude.toString()}")
-                    val longitude = findViewById(R.id.longitudeText) as TextView
-                    longitude.setText("Longitude: ${location.longitude.toString()}")
-                }
-            })
         }
     }
 
