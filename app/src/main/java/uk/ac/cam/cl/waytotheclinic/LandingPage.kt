@@ -109,9 +109,11 @@ class LandingPage : AppCompatActivity() {
         top_green_box.setOnTouchListener(swipeListener);
         menu_button.setOnTouchListener(swipeListener);
 
+        /*var LocationFragment : Fragment;
+        LocationFragment = LocationFragment.onCreate()*/
+
         if (ContextCompat.checkSelfPermission(this,
                 Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
-            //val location = LocationLibrary.getLocation(this)
             //displayLatitude(location)
             //displayLongitude(location)
             //displayAccuracy(location)
@@ -127,7 +129,7 @@ class LandingPage : AppCompatActivity() {
 
     override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-        var location = LocationLibrary.getLocation(this) as Location
+        getLocation();
         //displayLatitude(location)
         //displayLongitude(location)
         //displayAccuracy(location)
