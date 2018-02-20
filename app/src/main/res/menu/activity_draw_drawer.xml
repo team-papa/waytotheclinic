@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    tools:showIn="navigation_view">
+
+    <group android:checkableBehavior="single">
+        <item
+            android:id="@+id/nav_first_floor"
+            android:icon="@drawable/first_50"
+            android:title="First floor"
+            android:checked="true"/>
+        <item
+            android:id="@+id/nav_second_floor"
+            android:icon="@drawable/second_50"
+            android:title="Second floor" />
+    </group>
+
+</menu>
