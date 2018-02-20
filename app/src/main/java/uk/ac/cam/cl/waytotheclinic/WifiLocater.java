@@ -112,13 +112,16 @@ public class WifiLocater {
 
 		double lat = 0;
 		double lon = 0;
+		double floor = 0;
 		for(Map.Entry<WifiLocation, Integer> score : scores.entrySet()) {
 			lat += score.getKey().getLocation().getLatitude() * score.getValue() / sumOfScores;
 			lon += score.getKey().getLocation().getLongitude() * score.getValue() / sumOfScores;
+			floor += score.getKey().getFloor() * score.getValue() / sumOfScores;
 		}
 
 		l.setLatitude(lat);
 		l.setLongitude(lon);
+		l.setAltitude(floor);
 
 		return l;
 	}
