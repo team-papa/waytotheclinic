@@ -19,8 +19,10 @@ import android.view.*;
 import android.view.inputmethod.InputMethodManager;
 import android.util.TypedValue;
 import android.widget.AdapterView;
+import android.widget.CheckBox;
 import android.widget.ImageButton;
 import android.widget.SimpleAdapter;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import java.util.ArrayList;
@@ -44,6 +46,8 @@ public class LandingPage  extends AppCompatActivity implements NavigationView.On
     DrawerLayout drawer_layout;
     NavigationView nav_view;
     ImageButton menu_button;
+    CheckBox checkBox;
+    TextView checkBoxText;
 
 
     @Override
@@ -225,6 +229,21 @@ public class LandingPage  extends AppCompatActivity implements NavigationView.On
                 if(!hasFocus) {
                     InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
                     imm.hideSoftInputFromWindow(view.getWindowToken(), 0);
+                }
+            }
+        });
+
+
+        // Make text associated with checkbox clickable
+        checkBox = findViewById(R.id.checkBox);
+        checkBoxText = findViewById(R.id.checkBoxText);
+        checkBoxText.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                if(checkBox.isChecked()) {
+                    checkBox.setChecked(false);
+                } else {
+                    checkBox.setChecked(true);
                 }
             }
         });
