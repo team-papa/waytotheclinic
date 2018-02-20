@@ -8,8 +8,6 @@
     tools:context="uk.ac.cam.cl.waytotheclinic.LandingPage">
 
 
-
-
     <android.support.constraint.ConstraintLayout
         android:id="@+id/top_green_box"
         android:layout_width="match_parent"
@@ -52,7 +50,7 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent"></ImageButton>
 
-        <AutoCompleteTextView
+        <uk.ac.cam.cl.waytotheclinic.CustomAutoCompleteTextView
             android:id="@+id/search_box"
             android:layout_width="0dp"
             android:layout_height="40dp"
@@ -62,7 +60,6 @@
             android:layout_marginTop="8dp"
             android:background="@drawable/rounded_view"
             android:backgroundTint="@color/colorWhite"
-            android:focusedByDefault="true"
             android:hint="@string/search_hint"
             android:imeActionLabel="Search"
             android:imeOptions="actionSearch"
@@ -74,7 +71,7 @@
             android:textCursorDrawable="@drawable/color_cursor"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="@+id/top_white_box"
+            app:layout_constraintStart_toStartOf="@id/top_white_box"
             app:layout_constraintTop_toTopOf="parent" />
 
         <CheckBox
