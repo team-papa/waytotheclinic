@@ -4,6 +4,7 @@ import android.content.Context;
 import android.location.Location;
 import android.net.wifi.ScanResult;
 import android.net.wifi.WifiManager;
+import android.util.Log;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -15,114 +16,114 @@ import java.util.List;
 import java.util.Map;
 
 public class WifiLocater {
-	private List<WifiLocation> model;
-	private WifiManager wifiM;
+    private List<WifiLocation> model;
+    private WifiManager wifiM;
 
-	public WifiLocater(Context c) {
-		wifiM = (WifiManager) c.getSystemService(Context.WIFI_SERVICE);
-	}
+    public WifiLocater(WifiManager wm) {
+        wifiM = wm;
+    }
 
-	private Map<String, Integer> scan() {
-		List<ScanResult> res = wifiM.getScanResults();
+    private Map<String, Integer> scan() {
+        List<ScanResult> res = wifiM.getScanResults();
 
-		Map<String, Integer> strengths = new HashMap<>();
+        Map<String, Integer> strengths = new HashMap<>();
 
-		for (ScanResult r : res) {
-			String bssid = r.BSSID;
-			if (strengths.get(bssid) == null) {
-				// There may be several entries with the same BSSID, so find the mean of them all
-				int meanStrength = 0;
-				int num = 0;
+        for (ScanResult r : res) {
+            String bssid = r.BSSID;
+            if (strengths.get(bssid) == null) {
+                // There may be several entries with the same BSSID, so find the mean of them all
+                int meanStrength = 0;
+                int num = 0;
 
-				for (ScanResult result : res) {
-					if (result.BSSID == bssid) {
-						meanStrength += result.level;
-						num++;
-					}
-				}
+                for (ScanResult result : res) {
+                    if (result.BSSID == bssid) {
+                        meanStrength += result.level;
+                        num++;
+                    }
+                }
 
-				meanStrength /= num;
+                meanStrength /= num;
 
-				strengths.put(bssid, meanStrength);
-			}
-		}
+                strengths.put(bssid, meanStrength);
+            }
+        }
 
-		return strengths;
-	}
+        return strengths;
+    }
 
-	public void createModel(List<WifiLocation> trainingData) {
-		model = trainingData;
-	}
+    public void createModel(List<WifiLocation> trainingData) {
+        model = trainingData;
+    }
 
-	public void loadModel(File f) throws IOException {
-		FileInputStream fis = new FileInputStream(f);
-		ObjectInputStream ois = new ObjectInputStream(fis);
+    public void loadModel(File f) throws IOException {
+        FileInputStream fis = new FileInputStream(f);
+        ObjectInputStream ois = new ObjectInputStream(fis);
 
-		try {
-			model = (List<WifiLocation>) ois.readObject();
-		} catch (ClassNotFoundException e) {
-			throw new IOException("File could not be read");
-		}
+        try {
+            model = (List<WifiLocation>) ois.readObject();
+        } catch (ClassNotFoundException e) {
+            throw new IOException("File could not be read");
+        }
 
-		ois.close();
-	}
+        ois.close();
+    }
 
-	public void saveModel(File f) throws IOException {
-		if (model == null) {
-			throw new IOException("No active model");
-		}
+    public void saveModel(File f) throws IOException {
+        if (model == null) {
+            throw new IOException("No active model");
+        }
 
-		FileOutputStream fos = new FileOutputStream(f);
-		ObjectOutputStream oos = new ObjectOutputStream(fos);
+        FileOutputStream fos = new FileOutputStream(f);
+        ObjectOutputStream oos = new ObjectOutputStream(fos);
 
-		oos.writeObject(model);
+        oos.writeObject(model);
 
-		oos.close();
-	}
+        oos.close();
+    }
 
-	public Location getLocation() {
-		return getLocation(scan());
-	}
+    public Location getLocation() {
+        return getLocation(scan());
+    }
 
-	public Location getLocation(Map<String, Integer> strengths) {
-		Location l = new Location("Predicted by WifiLocater");
+    public Location getLocation(Map<String, Integer> strengths) {
+        Location l = new Location("Predicted by WifiLocater");
 
-		if (model == null) {
-			// Default to 0,0 if we have no idea
-			return l;
-		}
+        if (model == null) {
+            Log.w("waytotheclinic", "No WiFi model loaded");
+            return l;
+        }
 
-		Map<WifiLocation, Integer> scores = new HashMap<>();
-		int sumOfScores = 0;
+        Map<WifiLocation, Integer> scores = new HashMap<>();
+        int sumOfScores = 0;
 
-		Map<String, Integer> scanResults = scan();
+        Map<String, Integer> scanResults = scan();
 
-		for (WifiLocation wl : model) {
-			int score = 0;
-			for (Map.Entry<String, Integer> entry : wl.getStrengths().entrySet()) {
-				Integer strength = scanResults.get(entry.getKey());
-				if (strength != null) {
-					score += 100 - Math.abs(strength - entry.getValue());
-				}
-			}
+        for (WifiLocation wl : model) {
+            int score = 0;
+            for (Map.Entry<String, Integer> entry : wl.getStrengths().entrySet()) {
+                Integer strength = scanResults.get(entry.getKey());
+                if (strength != null) {
+                    score += 100 - Math.abs(strength - entry.getValue());
+                }
+            }
 
-			scores.put(wl, score);
-			sumOfScores += score;
-		}
+            scores.put(wl, score);
+            sumOfScores += score;
+        }
 
-		double lat = 0;
-		double lon = 0;
-		double floor = 0;
-		for(Map.Entry<WifiLocation, Integer> score : scores.entrySet()) {
-			lat += score.getKey().getLocation().getLatitude() * score.getValue() / sumOfScores;
-			lon += score.getKey().getLocation().getLongitude() * score.getValue() / sumOfScores;
-			floor += score.getKey().getFloor() * score.getValue() / sumOfScores;
-		}
+        double lat = 0;
+        double lon = 0;
+        double floor = 0;
+        for(Map.Entry<WifiLocation, Integer> score : scores.entrySet()) {
+            lat += score.getKey().getLocation().getLatitude() * score.getValue() / sumOfScores;
+            lon += score.getKey().getLocation().getLongitude() * score.getValue() / sumOfScores;
+            floor += score.getKey().getFloor() * score.getValue() / sumOfScores;
+        }
 
-		l.setLatitude(lat);
-		l.setLongitude(lon);
-		l.setAltitude(floor);
+        l.setLatitude(lat);
+        l.setLongitude(lon);
+        l.setAltitude(floor);
 
-		return l;
-	}
+        return l;
+    }
 }
