@@ -22,8 +22,13 @@ public class LocationFragment extends Fragment {
 	private final int MY_PERMISSIONS_REQUEST_ACCESS_WIFI_STATE = 2;
 	private final String WIFI_DATA_FILE = "wifiModel.dat";	// TODO: create that file
 
-	private class LocationTask extends AsyncTask<Void, Void, Location> {
-		protected Location doInBackground(Void... v) {
+	private class LocationTask extends AsyncTask<LocationListener, Void, Location> {
+		private LocationListener callback;
+
+		protected Location doInBackground(LocationListener... ll) {
+			assert(ll.length == 1);
+			callback = ll[0];
+
 			try {
 				WifiLocater wl = new WifiLocater(context);
 				wl.loadModel(new File(WIFI_DATA_FILE));
@@ -36,7 +41,17 @@ public class LocationFragment extends Fragment {
 
 			// TODO: combine this with GPS and any other sources
 		}
+
+		protected void onPostExecute(Location l) {
+			callback.updateLocation(l);
+		}
 	}
+
+	public interface LocationListener {
+		void updateLocation(Location l);
+	}
+
+	private LocationListener callback;
 
 	private Timer timer;
 
@@ -44,6 +59,21 @@ public class LocationFragment extends Fragment {
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setRetainInstance(true);
+	}
+
+	@Override
+	public void onAttach(Context context) {
+		super.onAttach(context);
+
+		assert(context instanceof LocationListener);
+		callback = (LocationListener) context;
+	}
+
+	@Override
+	public void onDetach() {
+		super.onDetach();
+
+		callback = null;
 	}
 
 	@Override
@@ -55,8 +85,9 @@ public class LocationFragment extends Fragment {
 			timer.schedule(new TimerTask() {
 				@Override
 				public void run() {
-					new LocationTask().execute();
-					// TODO: do something with the return value
+					if (callback != null) {
+						new LocationTask().execute(callback);
+					}
 				}
 			}, 0, 5000);	// Refresh every 5 seconds (review this)
 		} else {

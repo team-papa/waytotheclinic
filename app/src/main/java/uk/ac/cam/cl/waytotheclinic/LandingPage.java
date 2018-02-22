@@ -3,6 +3,7 @@ package uk.ac.cam.cl.waytotheclinic;
 import android.animation.LayoutTransition;
 import android.content.Context;
 import android.content.res.ColorStateList;
+import android.location.Location;
 import android.os.Bundle;
 import android.support.constraint.ConstraintLayout;
 import android.support.constraint.ConstraintSet;
@@ -21,8 +22,7 @@ import android.widget.ArrayAdapter;
 import android.widget.ImageButton;
 import android.widget.Toast;
 
-
-public class LandingPage  extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener{
+public class LandingPage  extends AppCompatActivity implements LocationFragment.LocationListener, NavigationView.OnNavigationItemSelectedListener {
 
     private String[] places = new String[]{"Belgium", "Frodo", "France", "Italy", "Germany", "Spain"};
     ConstraintLayout top_green_box;
@@ -208,5 +208,10 @@ public class LandingPage  extends AppCompatActivity implements NavigationView.On
 
     public int dpToPx(Float value) {
         return (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, value, getResources().getDisplayMetrics());
+    }
+
+    @Override
+    public void updateLocation(Location l) {
+        // TODO: implement this
     }
 }
