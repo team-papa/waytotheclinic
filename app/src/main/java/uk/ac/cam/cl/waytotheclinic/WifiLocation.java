@@ -5,7 +5,7 @@ import java.io.Serializable;
 import java.util.Map;
 
 class WifiLocation implements Serializable {
-	private int floorNumber
+	private int floorNumber;
 	private Location location;
 	private Map<String, Integer> strengths;	// Map of BSSID to strength
 

@@ -18,8 +18,8 @@ public class WifiLocater {
 	private List<WifiLocation> model;
 	private WifiManager wifiM;
 
-	public WifiLocater() {
-		this.wifiM = (WifiManager) getSystemService(Context.WIFI_SERVICE);
+	public WifiLocater(Context c) {
+		wifiM = (WifiManager) c.getSystemService(Context.WIFI_SERVICE);
 	}
 
 	private Map<String, Integer> scan() {
@@ -60,7 +60,7 @@ public class WifiLocater {
 
 		try {
 			model = (List<WifiLocation>) ois.readObject();
-		} catch (ClassCastException e) {
+		} catch (ClassNotFoundException e) {
 			throw new IOException("File could not be read");
 		}
 
