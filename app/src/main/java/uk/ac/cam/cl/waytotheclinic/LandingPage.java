@@ -1,12 +1,16 @@
 package uk.ac.cam.cl.waytotheclinic;
 
+import android.Manifest;
 import android.animation.LayoutTransition;
 import android.content.Context;
+import android.content.pm.PackageManager;
 import android.content.res.ColorStateList;
+import android.location.Location;
 import android.os.Bundle;
 import android.support.constraint.ConstraintLayout;
 import android.support.constraint.ConstraintSet;
 import android.support.design.widget.NavigationView;
+import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
@@ -19,12 +23,19 @@ import android.util.TypedValue;
 import android.widget.AutoCompleteTextView;
 import android.widget.ArrayAdapter;
 import android.widget.ImageButton;
+import android.widget.TextView;
 import android.widget.Toast;
+
+import com.google.android.gms.location.FusedLocationProviderClient;
+import com.google.android.gms.location.LocationServices;
+import com.google.android.gms.tasks.OnSuccessListener;
 
 
 public class LandingPage  extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener{
 
     private String[] places = new String[]{"Belgium", "Frodo", "France", "Italy", "Germany", "Spain"};
+    private int MY_PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION = 1;
+    private Location mCurrentLocation;
     ConstraintLayout top_green_box;
     AutoCompleteTextView search_box;
     DrawerLayout drawer_layout;
@@ -164,8 +175,61 @@ public class LandingPage  extends AppCompatActivity implements NavigationView.On
                 }
             }
         });
+
+        if (ContextCompat.checkSelfPermission(this,
+                Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+            getLocation();
+        }
+        else {
+            ActivityCompat.requestPermissions(this,
+                    new String[]{Manifest.permission.ACCESS_FINE_LOCATION},
+                    MY_PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION);
+        }
     }
 
+    @Override
+    public void onRequestPermissionsResult (int requestCode, String[] permissions,
+                                                 int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        getLocation();
+    }
+
+    public void getLocation() {
+        FusedLocationProviderClient mFusedLocationClient =
+                LocationServices.getFusedLocationProviderClient(this);
+
+        if (ContextCompat.checkSelfPermission(this,
+                Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+            mFusedLocationClient.getLastLocation()
+                    .addOnSuccessListener(this, new OnSuccessListener<Location>() {
+                        @Override
+                        public void onSuccess(Location location) {
+                            // Got last known location. In some rare situations this can be null.
+                            if (location != null) {
+                                mCurrentLocation = location;
+                                displayLatitude();
+                                displayLongitude();
+                                displayAccuracy();
+                            }
+                        }
+                    });
+        }
+    }
+
+    public void displayLatitude() {
+        TextView latitude = findViewById(R.id.latitudeText);
+        latitude.setText("Latitude: " + mCurrentLocation.getLatitude());
+    }
+
+    public void displayLongitude() {
+        TextView longitude = findViewById(R.id.longitudeText);
+        longitude.setText("Longitude: " + mCurrentLocation.getLongitude());
+    }
+
+    public void displayAccuracy() {
+        TextView accuracy = findViewById(R.id.accuracyText);
+        accuracy.setText("Accuracy: " + mCurrentLocation.getAccuracy());
+    }
 
     @Override
     public void onBackPressed() {
