@@ -4,7 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/colorRed"
+    android:background="@color/colorWhite"
     tools:context="uk.ac.cam.cl.waytotheclinic.LandingPage">
 
 
@@ -12,10 +12,10 @@
         android:id="@+id/top_green_box"
         android:layout_width="match_parent"
         android:layout_height="300dp"
-        android:background="@color/colorDarkGreen"
-        android:elevation="2dp"
         android:animateLayoutChanges="true"
+        android:background="@color/colorDarkGreen"
         android:clickable="true"
+        android:elevation="2dp"
         android:focusableInTouchMode="true"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.0"
@@ -75,7 +75,7 @@
             app:layout_constraintTop_toTopOf="parent" />
 
         <TextView
-            android:id="@+id/checkBoxText"
+            android:id="@+id/check_box_text"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center"
@@ -87,12 +87,12 @@
             android:textAppearance="?android:attr/textAppearanceMedium"
             android:textColor="@android:color/white"
             app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toStartOf="@+id/checkBox"
+            app:layout_constraintEnd_toStartOf="@+id/check_box"
             app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintVertical_bias="0.653" />
 
         <CheckBox
-            android:id="@+id/checkBox"
+            android:id="@+id/check_box"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginEnd="8dp"
@@ -119,6 +119,7 @@
         app:layout_constraintVertical_bias="1.0" />
 
     <FrameLayout
+        android:id="@+id/frameLayout"
         android:layout_width="140dp"
         android:layout_height="140dp"
         android:layout_gravity="bottom|right"
@@ -139,12 +140,26 @@
             android:layout_height="wrap_content"
             android:layout_gravity="center"
             android:elevation="16dp"
-            android:text="@android:string/ok"
+            android:text="@string/AE"
+            android:textSize="36sp"
             android:textAppearance="?android:attr/textAppearanceMedium"
             android:textColor="@android:color/white"
             tools:layout_editor_absoluteX="320dp"
             tools:layout_editor_absoluteY="577dp" />
 
     </FrameLayout>
+
+    <android.support.design.widget.FloatingActionButton
+        android:id="@+id/my_location_button"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        android:layout_marginEnd="16dp"
+        android:clickable="true"
+        android:scaleType="center"
+        android:tint="@color/colorDarkGrey"
+        app:backgroundTint="@color/colorDirtyWhite"
+        app:layout_constraintBottom_toTopOf="@+id/frameLayout"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:srcCompat="@drawable/myloc36" />
 
 </android.support.constraint.ConstraintLayout>

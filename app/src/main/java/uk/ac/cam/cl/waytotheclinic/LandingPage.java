@@ -1,13 +1,18 @@
 package uk.ac.cam.cl.waytotheclinic;
 
 import android.animation.LayoutTransition;
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.content.res.ColorStateList;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.os.Bundle;
+import android.os.Handler;
 import android.preference.PreferenceManager;
 import android.support.constraint.ConstraintLayout;
 import android.support.constraint.ConstraintSet;
+import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.NavigationView;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.view.GravityCompat;
@@ -46,10 +51,13 @@ public class LandingPage  extends AppCompatActivity implements NavigationView.On
     DrawerLayout drawer_layout;
     NavigationView nav_view;
     ImageButton menu_button;
-    CheckBox checkBox;
-    TextView checkBoxText;
+    CheckBox check_box;
+    TextView check_box_text;
+    FloatingActionButton ae_button;
+    FloatingActionButton my_location_button;
 
 
+    @SuppressLint("ClickableViewAccessibility")
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -60,6 +68,10 @@ public class LandingPage  extends AppCompatActivity implements NavigationView.On
         drawer_layout = findViewById(R.id.drawer_layout);
         nav_view = findViewById(R.id.nav_view);
         menu_button = findViewById(R.id.menu_button);
+        check_box = findViewById(R.id.check_box);
+        check_box_text = findViewById(R.id.check_box_text);
+        ae_button = findViewById(R.id.ae_button);
+        my_location_button = findViewById(R.id.my_location_button);
 
         MapFragment mapFragment = new MapFragment();
         getSupportFragmentManager().beginTransaction().replace(R.id.map_id, mapFragment);
@@ -235,18 +247,87 @@ public class LandingPage  extends AppCompatActivity implements NavigationView.On
 
 
         // Make text associated with checkbox clickable
-        checkBox = findViewById(R.id.checkBox);
-        checkBoxText = findViewById(R.id.checkBoxText);
-        checkBoxText.setOnClickListener(new View.OnClickListener() {
+        check_box_text.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                if(checkBox.isChecked()) {
-                    checkBox.setChecked(false);
+                if(check_box.isChecked()) {
+                    check_box.setChecked(false);
                 } else {
-                    checkBox.setChecked(true);
+                    check_box.setChecked(true);
                 }
             }
         });
+
+
+        // Make "my location" button responsive
+        Bitmap bMap = BitmapFactory.decodeResource(getResources(), R.drawable.myloc72);
+        Bitmap bMapScaled = Bitmap.createScaledBitmap(bMap, dpToPx(36.0F), dpToPx(36.0F), true);
+        my_location_button.setImageBitmap(bMapScaled);
+        my_location_button.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Toast.makeText(getApplicationContext(), "My location!", Toast.LENGTH_SHORT).show();
+                // TODO move map to user's location
+            }
+        });
+
+
+        // Make AE button responsive
+        final long timeoutBetweenTaps = 8 * ViewConfiguration.getTapTimeout();
+        ae_button.setOnTouchListener(new View.OnTouchListener() {
+                Handler handler = new Handler();
+                int numberOfTaps = 0;
+                long lastTapTimeMs = 0;
+                long touchDownMs = 0;
+
+                @Override
+                public boolean onTouch(View view, MotionEvent event) {
+                    switch (event.getAction()) {
+                        case MotionEvent.ACTION_DOWN:
+                            touchDownMs = System.currentTimeMillis();
+                            break;
+                        case MotionEvent.ACTION_UP:
+                            handler.removeCallbacksAndMessages(null);
+
+                            if ((System.currentTimeMillis() - touchDownMs) > timeoutBetweenTaps) {
+                                //it was not a tap
+
+                                numberOfTaps = 0;
+                                lastTapTimeMs = 0;
+                                break;
+                            }
+
+                            if (numberOfTaps > 0
+                                    && (System.currentTimeMillis() - lastTapTimeMs) < timeoutBetweenTaps) {
+                                numberOfTaps += 1;
+                                if (numberOfTaps == 2)
+                                    Toast.makeText(getApplicationContext(), "1 more tap", Toast.LENGTH_SHORT).show();
+
+                            } else {
+                                Toast.makeText(getApplicationContext(), "2 more taps", Toast.LENGTH_SHORT).show();
+                                numberOfTaps = 1;
+                            }
+
+                            lastTapTimeMs = System.currentTimeMillis();
+
+                            if (numberOfTaps == 3) {
+                                Toast.makeText(getApplicationContext(), "Here's the way to the closest A&E room", Toast.LENGTH_SHORT).show();
+                                // TODO show path to nearest AE room
+
+                            } else if (numberOfTaps == 2) {
+                                handler.postDelayed(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        Toast.makeText(getApplicationContext(), "Tap faster!", Toast.LENGTH_SHORT).show();
+                                    }
+                                }, timeoutBetweenTaps);
+                            }
+                    }
+                    return true;
+                }
+        });
+
+
     }
 
 
