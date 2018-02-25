@@ -48,6 +48,7 @@ public class LandingPage  extends AppCompatActivity implements NavigationView.On
     ImageButton menu_button;
     CheckBox checkBox;
     TextView checkBoxText;
+    MapFragment mapFragment;
 
 
     @Override
@@ -55,14 +56,18 @@ public class LandingPage  extends AppCompatActivity implements NavigationView.On
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_landing_page);
 
+        mapFragment = (MapFragment)getFragmentManager().findFragmentById(R.id.map_fragment);
         top_green_box = findViewById(R.id.top_green_box);
         search_box = findViewById(R.id.search_box);
         drawer_layout = findViewById(R.id.drawer_layout);
         nav_view = findViewById(R.id.nav_view);
         menu_button = findViewById(R.id.menu_button);
 
-        MapFragment mapFragment = new MapFragment();
-        getSupportFragmentManager().beginTransaction().replace(R.id.map_id, mapFragment);
+//        MapFragment mapFragment = new MapFragment();
+//        Bundle map1Bundle = new Bundle();
+//        map1Bundle.putInt("Floor", 1);
+//        mapFragment.setArguments(map1Bundle);
+//        getSupportFragmentManager().beginTransaction().replace(R.id.map_id, mapFragment).commit();
 
 
         SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(this);
@@ -330,11 +335,11 @@ public class LandingPage  extends AppCompatActivity implements NavigationView.On
         // Handle side-menu item-clicks
         switch (item.getItemId()) {
             case R.id.nav_first_floor:
-                // TODO Switch map to first floor
+                mapFragment.setFloor(1);
                 Toast.makeText(getApplicationContext(), "First floor", Toast.LENGTH_SHORT).show();
                 break;
             case R.id.nav_second_floor:
-                // TODO Switch map to second floor
+                mapFragment.setFloor(2);
                 Toast.makeText(getApplicationContext(), "Second floor", Toast.LENGTH_SHORT).show();
                 break;
         }

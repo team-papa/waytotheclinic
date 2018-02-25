@@ -1,5 +1,6 @@
 package uk.ac.cam.cl.waytotheclinic;
 
+import android.app.Fragment;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Color;
@@ -38,20 +39,27 @@ import java.util.Scanner;
 
 import static android.content.ContentValues.TAG;
 
-public class MapFragment extends android.support.v4.app.Fragment implements OnMapReadyCallback{
+public class MapFragment extends Fragment implements OnMapReadyCallback{
     MapView mapView = null;
     GoogleMap googleMap;
-    public TileProvider mapTileProvider;
-    public TileOverlay mapOverlay;
-    public TileProvider pathTileProvider;
-    public String[] populatedTiles;
-    public int Floor;
+    private String[] populatedTiles;
+    private int Floor = 2;
+    private Point location;
+    private List<Point> path;
+
+    private TileOverlay mapOverlay;
+    private TileOverlay pathOverlay;
+    private TileOverlay locOverlay;
 
     @Nullable
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         View view = inflater.inflate(R.layout.map_view, container, false);
+
+        Bundle args = getArguments();
+        if(args != null)
+            Floor = args.getInt("Floor");
 
         Thread urlLoader = new Thread(new Runnable() {
             @Override
@@ -87,6 +95,7 @@ public class MapFragment extends android.support.v4.app.Fragment implements OnMa
                     if(!tilePopulated(Floor, zoom, x, y))
                         return new URL("http://cjj39.user.srcf.net/WayToTheClinic/blank.png");
                     String url = String.format("http://cjj39.user.srcf.net/WayToTheClinic/TileMap%d/%d/%d/%d.png", Floor, zoom, x, y);
+//                    String url = String.format("http://mw1.google.com/mw-planetary/lunar/lunarmaps_v1/clem_bw/%d/%d/%d.jpg", zoom, x, y);
                     return new URL(url);
                 } catch (MalformedURLException e) {
                     e.printStackTrace();
@@ -95,6 +104,7 @@ public class MapFragment extends android.support.v4.app.Fragment implements OnMa
             }
         };
 
+        mapOverlay = googleMap.addTileOverlay(new TileOverlayOptions().zIndex(1).tileProvider(mapTileProvider));
     }
 
     private boolean tilePopulated(int f, int z, int x, int y){
@@ -104,6 +114,28 @@ public class MapFragment extends android.support.v4.app.Fragment implements OnMa
                 return true;
         }
         return false;
+    }
+
+    public void setFloor(int floor){
+        Floor = floor;
+        mapOverlay.clearTileCache();
+        mapView.invalidate();
+    }
+
+    public void setPath(List<Point> path){
+        //todo implement
+
+        //invalidate cache to cause update
+        pathOverlay.clearTileCache();
+        mapView.invalidate();
+    }
+
+    public void setLocation(Point loc){
+        //todo implement
+
+        //invalidate cache to cause update
+        locOverlay.clearTileCache();
+        mapView.invalidate();
     }
 
 //    public static void createPathFromString(Bitmap map, List<Pair> coords){
@@ -153,7 +185,7 @@ public class MapFragment extends android.support.v4.app.Fragment implements OnMa
             mapView = getActivity().findViewById(R.id.mapView);
 
         mapView.getMapAsync(this);
-        mapView.setBackgroundColor(Color.BLACK);
+        mapView.setBackgroundColor(Color.GRAY);
 
         mapView.onStart();
     }
@@ -214,4 +246,16 @@ public class MapFragment extends android.support.v4.app.Fragment implements OnMa
     }
 
     //endregion
+
+    public class Point{
+        float x;
+        float y;
+        int floor;
+
+        public Point(int X, int Y, int Floor){
+            x = X;
+            y = Y;
+            floor = Floor;
+        }
+    }
 }

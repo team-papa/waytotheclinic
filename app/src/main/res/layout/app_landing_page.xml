@@ -105,7 +105,7 @@
     </android.support.constraint.ConstraintLayout>
 
     <fragment
-        android:id="@+id/map_id"
+        android:id="@+id/map_fragment"
         android:name="uk.ac.cam.cl.waytotheclinic.MapFragment"
         android:layout_width="0dp"
         android:layout_height="0dp"
