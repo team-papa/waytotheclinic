@@ -51,6 +51,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback{
     private TileOverlay locOverlay;
 
     private PathTileProvider pathTileProvider;
+    private LocTileProvider locTileProvider;
 //    private  location;
 
     @Nullable
@@ -111,25 +112,13 @@ public class MapFragment extends Fragment implements OnMapReadyCallback{
         //endregion
 
         //region Path Provider
-        {
-            pathTileProvider = new PathTileProvider(256, this);
-
-            List<Point> tempPoints = new ArrayList<>();
-            tempPoints.add(new Point(0,0,1));
-            tempPoints.add(new Point(0.5, 0.5, 1));
-            tempPoints.add(new Point(0.5, 1, 1));
-            tempPoints.add(new Point(0.5, 1, 2));
-            tempPoints.add(new Point(0.5, 0.5, 2));
-            tempPoints.add(new Point(1, 1, 2));
-            pathTileProvider.setPath(tempPoints);
-
-            pathOverlay = googleMap.addTileOverlay(new TileOverlayOptions().zIndex(2).tileProvider(pathTileProvider));
-        }
+        pathTileProvider = new PathTileProvider(256, this);
+        pathOverlay = googleMap.addTileOverlay(new TileOverlayOptions().zIndex(2).tileProvider(pathTileProvider));
         //endregion
 
         //region Location Provider
-        {
-        }
+        locTileProvider = new LocTileProvider(256, this);
+        locOverlay = googleMap.addTileOverlay(new TileOverlayOptions().zIndex(3).tileProvider(locTileProvider));
         //endregion
 
     }
@@ -149,7 +138,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback{
 
         //clear path and loc to ensure that path and loc are only shown on correct floors
         pathOverlay.clearTileCache();
-//        locOverlay.clearTileCache();
+        locOverlay.clearTileCache();
         mapView.invalidate();
     }
 
@@ -158,7 +147,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback{
     }
 
     public void setPath(List<Point> path){
-        //todo implement
+        pathTileProvider.setPath(path);
 
         //invalidate cache to cause update
         pathOverlay.clearTileCache();
@@ -166,7 +155,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback{
     }
 
     public void setLocation(Point loc){
-        //todo implement
+        locTileProvider.setLocation(loc);
 
         //invalidate cache to cause update
         locOverlay.clearTileCache();
