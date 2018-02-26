@@ -4,16 +4,13 @@ import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
-import android.util.Log;
 
 import com.google.android.gms.maps.model.Tile;
 import com.google.android.gms.maps.model.TileProvider;
 
 import java.io.ByteArrayOutputStream;
 import java.util.List;
-import java.util.Map;
 
-import static android.content.ContentValues.TAG;
 
 /**
  * Created by Chris on 26/02/2018.
