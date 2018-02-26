@@ -27,6 +27,9 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.android.gms.location.FusedLocationProviderClient;
+import com.google.android.gms.location.LocationCallback;
+import com.google.android.gms.location.LocationRequest;
+import com.google.android.gms.location.LocationResult;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.tasks.OnSuccessListener;
 
@@ -35,6 +38,9 @@ public class LandingPage  extends AppCompatActivity implements NavigationView.On
 
     private String[] places = new String[]{"Belgium", "Frodo", "France", "Italy", "Germany", "Spain"};
     private int MY_PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION = 1;
+    FusedLocationProviderClient mFusedLocationClient;
+    LocationRequest mLocationRequest;
+    LocationCallback mLocationCallback;
     private Location mCurrentLocation;
     ConstraintLayout top_green_box;
     AutoCompleteTextView search_box;
@@ -177,42 +183,45 @@ public class LandingPage  extends AppCompatActivity implements NavigationView.On
         });
 
         if (ContextCompat.checkSelfPermission(this,
-                Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
-            getLocation();
-        }
-        else {
+                Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             ActivityCompat.requestPermissions(this,
                     new String[]{Manifest.permission.ACCESS_FINE_LOCATION},
                     MY_PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION);
         }
+
+        mLocationRequest = new LocationRequest();
+        mLocationRequest.setInterval(10000);
+        mLocationRequest.setFastestInterval(5000);
+        mLocationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
+
+        mLocationCallback = new LocationCallback() {
+            @Override
+            public void onLocationResult(LocationResult locationResult) {
+                for (Location location : locationResult.getLocations()) {
+                    mCurrentLocation = location;
+                    displayLatitude();
+                    displayLongitude();
+                    displayAccuracy();
+                }
+            };
+        };
+
+        startLocationUpdates();
     }
 
     @Override
     public void onRequestPermissionsResult (int requestCode, String[] permissions,
                                                  int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-        getLocation();
+        startLocationUpdates();
     }
 
-    public void getLocation() {
-        FusedLocationProviderClient mFusedLocationClient =
-                LocationServices.getFusedLocationProviderClient(this);
-
+    private void startLocationUpdates() {
         if (ContextCompat.checkSelfPermission(this,
                 Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
-            mFusedLocationClient.getLastLocation()
-                    .addOnSuccessListener(this, new OnSuccessListener<Location>() {
-                        @Override
-                        public void onSuccess(Location location) {
-                            // Got last known location. In some rare situations this can be null.
-                            if (location != null) {
-                                mCurrentLocation = location;
-                                displayLatitude();
-                                displayLongitude();
-                                displayAccuracy();
-                            }
-                        }
-                    });
+            mFusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
+            mFusedLocationClient.requestLocationUpdates(mLocationRequest,
+                    mLocationCallback, null);
         }
     }
 
