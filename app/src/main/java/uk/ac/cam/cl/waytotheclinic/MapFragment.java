@@ -19,6 +19,7 @@ import android.widget.Button;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapView;
 import com.google.android.gms.maps.OnMapReadyCallback;
+import com.google.android.gms.maps.model.Tile;
 import com.google.android.gms.maps.model.TileOverlay;
 import com.google.android.gms.maps.model.TileOverlayOptions;
 import com.google.android.gms.maps.model.TileProvider;
@@ -43,13 +44,14 @@ public class MapFragment extends Fragment implements OnMapReadyCallback{
     MapView mapView = null;
     GoogleMap googleMap;
     private String[] populatedTiles;
-    private int Floor = 2;
-    private Point location;
-    private List<Point> path;
+    private int Floor = 1;
 
     private TileOverlay mapOverlay;
     private TileOverlay pathOverlay;
     private TileOverlay locOverlay;
+
+    private PathTileProvider pathTileProvider;
+//    private  location;
 
     @Nullable
     @Override
@@ -87,24 +89,49 @@ public class MapFragment extends Fragment implements OnMapReadyCallback{
         this.googleMap = googleMap;
         googleMap.setMapType(GoogleMap.MAP_TYPE_NONE);
 
-        TileProvider mapTileProvider = new UrlTileProvider(256,256) {
-            @Override
-            public URL getTileUrl(int x, int y, int zoom) {
-                Log.d(TAG, "getTileUrl: getting " + x + ", " + y + ", " + zoom);
-                try {
-                    if(!tilePopulated(Floor, zoom, x, y))
-                        return new URL("http://cjj39.user.srcf.net/WayToTheClinic/blank.png");
-                    String url = String.format("http://cjj39.user.srcf.net/WayToTheClinic/TileMap%d/%d/%d/%d.png", Floor, zoom, x, y);
-//                    String url = String.format("http://mw1.google.com/mw-planetary/lunar/lunarmaps_v1/clem_bw/%d/%d/%d.jpg", zoom, x, y);
-                    return new URL(url);
-                } catch (MalformedURLException e) {
-                    e.printStackTrace();
+        //region Map Provider
+        {
+            TileProvider mapTileProvider = new UrlTileProvider(256, 256) {
+                @Override
+                public URL getTileUrl(int x, int y, int zoom) {
+                    Log.d(TAG, "getTileUrl: getting " + x + ", " + y + ", " + zoom);
+                    try {
+                        if (!tilePopulated(Floor, zoom, x, y))
+                            return new URL("http://cjj39.user.srcf.net/WayToTheClinic/blank.png");
+                        String url = String.format("http://cjj39.user.srcf.net/WayToTheClinic/TileMap%d/%d/%d/%d.png", Floor, zoom, x, y);
+                        return new URL(url);
+                    } catch (MalformedURLException e) {
+                        e.printStackTrace();
+                    }
+                    return null;
                 }
-                return null;
-            }
-        };
+            };
+            mapOverlay = googleMap.addTileOverlay(new TileOverlayOptions().zIndex(1).tileProvider(mapTileProvider));
+        }
+        //endregion
 
-        mapOverlay = googleMap.addTileOverlay(new TileOverlayOptions().zIndex(1).tileProvider(mapTileProvider));
+        //region Path Provider
+        {
+            pathTileProvider = new PathTileProvider(256, this);
+
+            List<Point> tempPoints = new ArrayList<>();
+            tempPoints.add(new Point(0,0,1));
+            tempPoints.add(new Point(0.5, 0.5, 1));
+            tempPoints.add(new Point(0.5, 1, 1));
+            tempPoints.add(new Point(0.5, 1, 2));
+            tempPoints.add(new Point(0.5, 0.5, 2));
+            tempPoints.add(new Point(1, 1, 2));
+            pathTileProvider.setPath(tempPoints);
+
+            pathOverlay = googleMap.addTileOverlay(new TileOverlayOptions().zIndex(2).tileProvider(pathTileProvider));
+        }
+        //endregion
+
+        //region Location Provider
+        {
+        }
+        //endregion
+
     }
 
     private boolean tilePopulated(int f, int z, int x, int y){
@@ -119,7 +146,15 @@ public class MapFragment extends Fragment implements OnMapReadyCallback{
     public void setFloor(int floor){
         Floor = floor;
         mapOverlay.clearTileCache();
+
+        //clear path and loc to ensure that path and loc are only shown on correct floors
+        pathOverlay.clearTileCache();
+//        locOverlay.clearTileCache();
         mapView.invalidate();
+    }
+
+    public int getFloor(){
+        return Floor;
     }
 
     public void setPath(List<Point> path){
@@ -248,11 +283,11 @@ public class MapFragment extends Fragment implements OnMapReadyCallback{
     //endregion
 
     public class Point{
-        float x;
-        float y;
+        double x;
+        double y;
         int floor;
 
-        public Point(int X, int Y, int Floor){
+        public Point(double X, double Y, int Floor){
             x = X;
             y = Y;
             floor = Floor;
