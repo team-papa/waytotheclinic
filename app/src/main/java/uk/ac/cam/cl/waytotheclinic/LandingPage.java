@@ -1,7 +1,6 @@
 package uk.ac.cam.cl.waytotheclinic;
 
 import android.animation.LayoutTransition;
-import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.content.res.ColorStateList;
@@ -20,6 +19,7 @@ import android.support.v4.widget.DrawerLayout;
 import android.support.v4.widget.ImageViewCompat;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.view.*;
 import android.view.inputmethod.InputMethodManager;
 import android.util.TypedValue;
@@ -31,6 +31,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -43,7 +44,7 @@ import java.util.TreeSet;
 
 public class LandingPage  extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener{
 
-    private String[] places = new String[]{"Belgium", "France", "Frodo", "Germany", "Italy", "Spain"};
+    //private String[] places = new String[]{"Belgium", "France", "Frodo", "Germany", "Italy", "Spain"};
     private final int historySize = 3;
     private List<String> history = new ArrayList<>();
     ConstraintLayout top_green_box;
@@ -57,7 +58,6 @@ public class LandingPage  extends AppCompatActivity implements NavigationView.On
     FloatingActionButton my_location_button;
 
 
-    @SuppressLint("ClickableViewAccessibility")
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -75,6 +75,13 @@ public class LandingPage  extends AppCompatActivity implements NavigationView.On
 
         MapFragment mapFragment = new MapFragment();
         getSupportFragmentManager().beginTransaction().replace(R.id.map_id, mapFragment);
+
+
+        // Generate all the searchable labels on the map. Call them places.
+        Set<String> places = LocationsProvider.generateLocations(getApplicationContext());
+        for(String label: places) {
+            Log.d("Label", label);
+        }
 
 
         SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(this);
@@ -118,8 +125,8 @@ public class LandingPage  extends AppCompatActivity implements NavigationView.On
         }
 
 
-        final List<Map<String, String>> placesList = new ArrayList<Map<String, String>>();
-        for(int i=0; i<places.length; i++) {
+        final List<Map<String, String>> placesList = new ArrayList<>();
+        for(String place: places) {
             placesList.add(placesQueue.poll());
         }
 
@@ -149,7 +156,10 @@ public class LandingPage  extends AppCompatActivity implements NavigationView.On
                 addRecentSearch(hm, placesList, history);
                 search_box.setAdapter(new SimpleAdapter(getBaseContext(), placesList, R.layout.autocomplete_layout, from, to));
 
-                // TODO add action that moves map to selected place hm.get("name")
+                // RICHIE: from label to vertex
+                Vertex closestVertex = fromLabelToVertex(hm.get("name"));
+
+                // TODO add action that moves map to selected place hm.get("name") (which is now closestVertex)
             }
         };
         search_box.setOnItemClickListener(itemClickListener);
@@ -463,6 +473,70 @@ public class LandingPage  extends AppCompatActivity implements NavigationView.On
 
         search_box.setDropDownHorizontalOffset(dpToPx(-50.0F));
     }
+
+
+    public Vertex fromLabelToVertex (String searchTerm) {
+        // my current location
+        Vertex myLocation = new Vertex(100, 200, 3);
+
+        HashMap<Vertex, String> bestVertices = new HashMap<>();
+        int bestLCS = 1; // set best LCS to 1, so we ignore vertices that have 0 match
+
+        ArrayList<String> searchArray = new ArrayList<>(
+                Arrays.asList(searchTerm.toLowerCase().split(" ")));
+
+        Set<Vertex> vertexSet = LocationsProvider.generateVertices(getApplicationContext());
+
+        for (Vertex v : vertexSet) {
+
+            for (String label : v.getLabels()) {
+                if(label != null) {
+                    ArrayList<String> labelArray = new ArrayList<>(
+                            Arrays.asList(label.toLowerCase().split(" ")));
+
+                    int currLCS = new LongestCommonSubsequence<String>
+                            (searchArray, labelArray).getLCS().size();
+
+                    if (currLCS == bestLCS) {
+                        bestVertices.put(v, label);
+                    } else if (currLCS > bestLCS) {
+                        bestVertices = new HashMap<>();
+                        bestLCS = currLCS;
+                        bestVertices.put(v, label);
+                    }
+                }
+            }
+        }
+
+        // check if no vertices match
+        if (bestVertices.size() > 0) {
+
+            // choose closest one vertex
+            int closest = Integer.MAX_VALUE;
+            Vertex closestVertex = null;
+            for (Map.Entry<Vertex, String> entry : bestVertices.entrySet()) {
+                Vertex v = entry.getKey();
+                String label = entry.getValue();
+
+                int currDistance = VertexComparator.manhattanDistance(myLocation, v);
+                System.out.format("%s %s %d\n", v, label, currDistance);
+
+                if (currDistance < closest) {
+                    closest = currDistance;
+                    closestVertex = v;
+                }
+            }
+
+            System.out.println("Best vertex: " + closestVertex);
+
+            return closestVertex;
+        } else {
+            System.out.println("No vertices found. Search for something else?");
+        }
+
+        return null;
+    }
+
 
     public int dpToPx(Float value) {
         return (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, value, getResources().getDisplayMetrics());
