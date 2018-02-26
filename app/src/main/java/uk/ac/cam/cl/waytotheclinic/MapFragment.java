@@ -87,7 +87,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback{
         this.googleMap = googleMap;
         googleMap.setMapType(GoogleMap.MAP_TYPE_NONE);
 
-        mapTileProvider = new UrlTileProvider(256,256) {
+        TileProvider mapTileProvider = new UrlTileProvider(256,256) {
             @Override
             public URL getTileUrl(int x, int y, int zoom) {
                 Log.d(TAG, "getTileUrl: getting " + x + ", " + y + ", " + zoom);

@@ -36,7 +36,7 @@ import java.util.Set;
 import java.util.TreeSet;
 
 
-public class LandingPage  extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener{
+public class LandingPage extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener{
 
     private String[] places = new String[]{"Belgium", "France", "Frodo", "Germany", "Italy", "Spain"};
     private final int historySize = 3;
