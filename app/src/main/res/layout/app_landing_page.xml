@@ -74,6 +74,23 @@
             app:layout_constraintStart_toStartOf="@id/top_white_box"
             app:layout_constraintTop_toTopOf="parent" />
 
+        <TextView
+            android:id="@+id/checkBoxText"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:layout_marginBottom="8dp"
+            android:layout_marginEnd="4dp"
+            android:layout_marginTop="8dp"
+            android:elevation="16dp"
+            android:text="Lift only"
+            android:textAppearance="?android:attr/textAppearanceMedium"
+            android:textColor="@android:color/white"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toStartOf="@+id/checkBox"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintVertical_bias="0.653" />
+
         <CheckBox
             android:id="@+id/checkBox"
             android:layout_width="wrap_content"
@@ -82,14 +99,13 @@
             android:layout_marginTop="8dp"
             android:button="@null"
             android:drawableRight="@drawable/checkbox_selector"
-            android:text="Lift only "
             android:textColor="@color/colorWhite"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintTop_toBottomOf="@id/search_box" />
     </android.support.constraint.ConstraintLayout>
 
     <fragment
-        android:id="@+id/map_id"
+        android:id="@+id/map_fragment"
         android:name="uk.ac.cam.cl.waytotheclinic.MapFragment"
         android:layout_width="0dp"
         android:layout_height="0dp"
@@ -100,7 +116,7 @@
         app:layout_constraintHorizontal_bias="1.0"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.0" />
+        app:layout_constraintVertical_bias="1.0" />
 
     <FrameLayout
         android:layout_width="140dp"
@@ -128,6 +144,7 @@
             android:textColor="@android:color/white"
             tools:layout_editor_absoluteX="320dp"
             tools:layout_editor_absoluteY="577dp" />
+
     </FrameLayout>
 
 </android.support.constraint.ConstraintLayout>

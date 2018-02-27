@@ -19,8 +19,10 @@ import android.view.*;
 import android.view.inputmethod.InputMethodManager;
 import android.util.TypedValue;
 import android.widget.AdapterView;
+import android.widget.CheckBox;
 import android.widget.ImageButton;
 import android.widget.SimpleAdapter;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import java.util.ArrayList;
@@ -34,7 +36,7 @@ import java.util.Set;
 import java.util.TreeSet;
 
 
-public class LandingPage  extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener{
+public class LandingPage extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener{
 
     private String[] places = new String[]{"Belgium", "France", "Frodo", "Germany", "Italy", "Spain"};
     private final int historySize = 3;
@@ -44,6 +46,9 @@ public class LandingPage  extends AppCompatActivity implements NavigationView.On
     DrawerLayout drawer_layout;
     NavigationView nav_view;
     ImageButton menu_button;
+    CheckBox checkBox;
+    TextView checkBoxText;
+    MapFragment mapFragment;
 
 
     @Override
@@ -51,14 +56,18 @@ public class LandingPage  extends AppCompatActivity implements NavigationView.On
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_landing_page);
 
+        mapFragment = (MapFragment)getFragmentManager().findFragmentById(R.id.map_fragment);
         top_green_box = findViewById(R.id.top_green_box);
         search_box = findViewById(R.id.search_box);
         drawer_layout = findViewById(R.id.drawer_layout);
         nav_view = findViewById(R.id.nav_view);
         menu_button = findViewById(R.id.menu_button);
 
-        MapFragment mapFragment = new MapFragment();
-        getSupportFragmentManager().beginTransaction().replace(R.id.map_id, mapFragment);
+//        MapFragment mapFragment = new MapFragment();
+//        Bundle map1Bundle = new Bundle();
+//        map1Bundle.putInt("Floor", 1);
+//        mapFragment.setArguments(map1Bundle);
+//        getSupportFragmentManager().beginTransaction().replace(R.id.map_id, mapFragment).commit();
 
 
         SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(this);
@@ -228,6 +237,21 @@ public class LandingPage  extends AppCompatActivity implements NavigationView.On
                 }
             }
         });
+
+
+        // Make text associated with checkbox clickable
+        checkBox = findViewById(R.id.checkBox);
+        checkBoxText = findViewById(R.id.checkBoxText);
+        checkBoxText.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                if(checkBox.isChecked()) {
+                    checkBox.setChecked(false);
+                } else {
+                    checkBox.setChecked(true);
+                }
+            }
+        });
     }
 
 
@@ -311,11 +335,11 @@ public class LandingPage  extends AppCompatActivity implements NavigationView.On
         // Handle side-menu item-clicks
         switch (item.getItemId()) {
             case R.id.nav_first_floor:
-                // TODO Switch map to first floor
+                mapFragment.setFloor(1);
                 Toast.makeText(getApplicationContext(), "First floor", Toast.LENGTH_SHORT).show();
                 break;
             case R.id.nav_second_floor:
-                // TODO Switch map to second floor
+                mapFragment.setFloor(2);
                 Toast.makeText(getApplicationContext(), "Second floor", Toast.LENGTH_SHORT).show();
                 break;
         }
