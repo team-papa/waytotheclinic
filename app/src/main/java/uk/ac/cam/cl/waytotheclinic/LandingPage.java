@@ -26,6 +26,7 @@ import android.view.inputmethod.InputMethodManager;
 import android.util.TypedValue;
 import android.widget.AdapterView;
 import android.widget.CheckBox;
+import android.widget.CompoundButton;
 import android.widget.ImageButton;
 import android.widget.SimpleAdapter;
 import android.widget.TextView;
@@ -61,6 +62,8 @@ public class LandingPage  extends AppCompatActivity implements NavigationView.On
     TextView search_term;
 
 
+    // Lift/stairs checkbox
+    static boolean noStairs = true;
 
     // List of all the places, passed around between classes. Necessary for adapters in search bars.
     static List<Map<String, String>> placesList = new ArrayList<>();
@@ -160,7 +163,7 @@ public class LandingPage  extends AppCompatActivity implements NavigationView.On
 
         // To make search box drop down align correctly
         search_box.setThreshold(1);
-        search_box.setDropDownHeight(dpToPx(300.0F));
+        search_box.setDropDownHeight(dpToPx(150.0F));
         search_box.setAdapter(new SimpleAdapter(getBaseContext(), placesList, R.layout.autocomplete_layout, from, to));
         search_box.setDropDownHorizontalOffset(dpToPx(-8.0F));
         search_box.setDropDownVerticalOffset(dpToPx(+10.0F));
@@ -171,7 +174,6 @@ public class LandingPage  extends AppCompatActivity implements NavigationView.On
             public void onItemClick(AdapterView<?> arg0, View arg1, int position, long id) {
                 HashMap<String, String> hm = (HashMap<String, String>) arg0.getAdapter().getItem(position);
                 search_box.clearFocus();
-                search_box.setText(hm.get("name"));
                 swipeUp();
 
                 // Add item to recent searches
@@ -180,6 +182,7 @@ public class LandingPage  extends AppCompatActivity implements NavigationView.On
 
                 // RICHIE: from label to vertex
                 toClosestVertex = fromLabelToVertex(hm.get("name"));
+                search_box.setText(toClosestVertex.toString());
 
                 // TODO add action that moves map to selected place hm.get("name") (which is now closestVertex)
 
@@ -296,8 +299,8 @@ public class LandingPage  extends AppCompatActivity implements NavigationView.On
         });
 
 
-        // Make text associated with checkbox clickable
-        check_box_text.setOnClickListener(new View.OnClickListener() {
+        // Make text associated with checkbox clickable + change noStairs accordingly
+        View.OnClickListener onClickListener = new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 if(check_box.isChecked()) {
@@ -305,6 +308,14 @@ public class LandingPage  extends AppCompatActivity implements NavigationView.On
                 } else {
                     check_box.setChecked(true);
                 }
+            }
+        };
+        check_box_text.setOnClickListener(onClickListener);
+
+        check_box.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton compoundButton, boolean b) {
+                noStairs = b;
             }
         });
 
@@ -447,6 +458,13 @@ public class LandingPage  extends AppCompatActivity implements NavigationView.On
 
 
     @Override
+    public void onResume() {
+        super.onResume();
+        check_box = findViewById(R.id.check_box);
+        check_box.setChecked(noStairs);
+    }
+
+    @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         MenuInflater inflater = getMenuInflater();
         inflater.inflate(R.menu.activity_draw_drawer, menu);
@@ -492,6 +510,8 @@ public class LandingPage  extends AppCompatActivity implements NavigationView.On
         constraintSet.applyTo(top_green_box);
         search_box.setDropDownHorizontalOffset(dpToPx(-8.0F));
         search_box.clearFocus();
+        search_box.setDropDownHeight(dpToPx(150.0F));
+
     }
 
     public void swipeUp() {
@@ -512,6 +532,7 @@ public class LandingPage  extends AppCompatActivity implements NavigationView.On
         constraintSet.applyTo(top_green_box);
 
         search_box.setDropDownHorizontalOffset(dpToPx(-50.0F));
+        search_box.setDropDownHeight(dpToPx(280.0F));
     }
 
 
