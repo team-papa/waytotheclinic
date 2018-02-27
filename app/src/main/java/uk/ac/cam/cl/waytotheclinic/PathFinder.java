@@ -12,8 +12,6 @@ public class PathFinder {
 
     // final list will be backwards
     public List<Edge> getPath(Vertex start, Vertex end, boolean noStairs) {
-        if(start.equals(end)) return new ArrayList<>();
-
         HashSet<Vertex> closedSet = new HashSet<>();
 
         HashSet<Vertex> openSet = new HashSet<>();
@@ -81,7 +79,7 @@ public class PathFinder {
     public static List<Instruction> getTextDirections(List<Edge> path) {
         List<Instruction> directions = new ArrayList<>();
 
-        double orientAngle = path.size() > 0 ? path.get(0).getAngle() : 0;
+        double orientAngle = path != null && path.size() > 0 ? path.get(0).getAngle() : 0;
 
         String textDirection = "";
 
@@ -203,7 +201,11 @@ public class PathFinder {
     public List<Edge> reconstructEdgePath(HashMap<Vertex, Vertex> cameFrom,
                                           HashMap<Vertex, Edge> cameFromEdge, Vertex current) {
         List<Edge> totalPath = new ArrayList<>();
-        totalPath.add(cameFromEdge.get(current));
+
+        Edge firstEdge = cameFromEdge.get(current);
+        if(firstEdge == null) return totalPath; // if no edges return empty list
+
+        totalPath.add(firstEdge);
 
         while (cameFromEdge.keySet().contains(current)) { // assumes will work
             current = cameFrom.get(current);
