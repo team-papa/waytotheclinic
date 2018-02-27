@@ -2,9 +2,11 @@
 <android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/main_layout"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/colorWhite"
+    android:animateLayoutChanges="true"
     tools:context="uk.ac.cam.cl.waytotheclinic.LandingPage">
 
 
@@ -46,7 +48,7 @@
             android:background="@android:color/transparent"
             android:elevation="4dp"
             android:src="@drawable/menu"
-            android:tint="@color/colorWhite"
+            android:tint="@color/colorDirtyWhite"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent"></ImageButton>
 
@@ -59,13 +61,13 @@
             android:layout_marginStart="8dp"
             android:layout_marginTop="8dp"
             android:background="@drawable/rounded_view"
-            android:backgroundTint="@color/colorWhite"
+            android:backgroundTint="@color/colorDirtyWhite"
             android:hint="@string/search_hint"
             android:imeActionLabel="Search"
             android:imeOptions="actionSearch"
             android:inputType="text"
             android:maxLines="1"
-            android:popupBackground="@color/colorWhite"
+            android:popupBackground="@color/colorDirtyWhite"
             android:text=""
             android:textColor="@color/colorDarkGrey"
             android:textCursorDrawable="@drawable/color_cursor"
@@ -79,28 +81,24 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center"
-            android:layout_marginBottom="8dp"
             android:layout_marginEnd="4dp"
-            android:layout_marginTop="8dp"
             android:elevation="16dp"
             android:text="Lift only"
             android:textAppearance="?android:attr/textAppearanceMedium"
             android:textColor="@android:color/white"
-            app:layout_constraintBottom_toBottomOf="parent"
+            android:textSize="16sp"
             app:layout_constraintEnd_toStartOf="@+id/check_box"
-            app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintVertical_bias="0.653" />
+            app:layout_constraintTop_toTopOf="@+id/check_box" />
 
         <CheckBox
             android:id="@+id/check_box"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginEnd="8dp"
             android:layout_marginTop="8dp"
             android:button="@null"
             android:drawableRight="@drawable/checkbox_selector"
             android:textColor="@color/colorWhite"
-            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintEnd_toEndOf="@+id/search_box"
             app:layout_constraintTop_toBottomOf="@id/search_box" />
     </android.support.constraint.ConstraintLayout>
 
@@ -120,16 +118,16 @@
 
     <FrameLayout
         android:id="@+id/frameLayout"
-        android:layout_width="140dp"
-        android:layout_height="140dp"
+        android:layout_width="104dp"
+        android:layout_height="104dp"
         android:layout_gravity="bottom|right"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent">
 
         <android.support.design.widget.FloatingActionButton
             android:id="@+id/ae_button"
-            android:layout_width="110dp"
-            android:layout_height="110dp"
+            android:layout_width="80dp"
+            android:layout_height="80dp"
             android:layout_gravity="center"
             android:clickable="true"
             android:src="@android:color/transparent"
@@ -141,9 +139,9 @@
             android:layout_gravity="center"
             android:elevation="16dp"
             android:text="@string/AE"
-            android:textSize="36sp"
             android:textAppearance="?android:attr/textAppearanceMedium"
             android:textColor="@android:color/white"
+            android:textSize="24sp"
             tools:layout_editor_absoluteX="320dp"
             tools:layout_editor_absoluteY="577dp" />
 
@@ -153,13 +151,87 @@
         android:id="@+id/my_location_button"
         android:layout_width="48dp"
         android:layout_height="48dp"
-        android:layout_marginEnd="16dp"
+        android:layout_marginBottom="8dp"
+        android:layout_marginEnd="12dp"
         android:clickable="true"
         android:scaleType="center"
         android:tint="@color/colorDarkGrey"
         app:backgroundTint="@color/colorDirtyWhite"
-        app:layout_constraintBottom_toTopOf="@+id/frameLayout"
+        app:layout_constraintBottom_toTopOf="@+id/bottom_white_box"
         app:layout_constraintEnd_toEndOf="parent"
-        app:srcCompat="@drawable/myloc36" />
+        app:srcCompat="@drawable/myloc" />
+        app:srcCompat="@drawable/myloc" />
+
+
+
+
+    <android.support.constraint.ConstraintLayout
+        android:id="@+id/bottom_white_box"
+        android:layout_width="match_parent"
+        android:layout_height="96dp"
+        android:background="@color/colorDirtyWhite"
+        android:visibility="invisible"
+        android:elevation="18dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent">
+
+        <android.support.constraint.ConstraintLayout
+            android:id="@+id/directions"
+            android:layout_width="120dp"
+            android:layout_height="28dp"
+            android:layout_marginBottom="16dp"
+            android:layout_marginEnd="16dp"
+            android:background="@drawable/directions_view"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent">
+
+            <ImageView
+                android:id="@+id/directions_icon"
+                android:layout_width="20dp"
+                android:layout_height="20dp"
+                android:layout_marginBottom="8dp"
+                android:layout_marginStart="8dp"
+                android:layout_marginTop="8dp"
+                android:clickable="false"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                app:srcCompat="@drawable/directions_32" />
+
+            <TextView
+                android:id="@+id/directions_text"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="8dp"
+                android:layout_marginEnd="8dp"
+                android:layout_marginStart="8dp"
+                android:layout_marginTop="8dp"
+                android:text="DIRECTIONS"
+                android:clickable="false"
+                android:textColor="@color/colorWhite"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toEndOf="@+id/directions_icon"
+                app:layout_constraintTop_toTopOf="parent" />
+        </android.support.constraint.ConstraintLayout>
+
+
+        <TextView
+            android:id="@+id/search_term"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="8dp"
+            android:layout_marginStart="8dp"
+            android:layout_marginTop="16dp"
+            android:text=""
+            android:textSize="20sp"
+            android:textColor="@color/colorDarkGrey"
+            app:layout_constraintEnd_toEndOf="@+id/bottom_white_box"
+            app:layout_constraintHorizontal_bias="0.03"
+            app:layout_constraintStart_toStartOf="@+id/bottom_white_box"
+            app:layout_constraintTop_toTopOf="@+id/bottom_white_box" />
+    </android.support.constraint.ConstraintLayout>
+
 
 </android.support.constraint.ConstraintLayout>

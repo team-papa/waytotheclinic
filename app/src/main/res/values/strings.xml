@@ -1,6 +1,8 @@
 <resources>
     <string name="app_name">Way To The Clinic</string>
     <string name="search_hint">Where to today?</string>
+    <string name="from_hint">Choose starting point</string>
+    <string name="to_hint">Choose destination</string>
     <string name="title_activity_draw">DrawActivity</string>
     <string name="navigation_drawer_open">Open navigation drawer</string>
     <string name="navigation_drawer_close">Close navigation drawer</string>

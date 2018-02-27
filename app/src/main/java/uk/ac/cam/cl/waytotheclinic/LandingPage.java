@@ -2,6 +2,7 @@ package uk.ac.cam.cl.waytotheclinic;
 
 import android.animation.LayoutTransition;
 import android.content.Context;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.res.ColorStateList;
 import android.graphics.Bitmap;
@@ -44,9 +45,8 @@ import java.util.TreeSet;
 
 public class LandingPage  extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener{
 
-    //private String[] places = new String[]{"Belgium", "France", "Frodo", "Germany", "Italy", "Spain"};
-    private final int historySize = 3;
-    private List<String> history = new ArrayList<>();
+    // UI Components
+    ConstraintLayout main_layout;
     ConstraintLayout top_green_box;
     CustomAutoCompleteTextView search_box;
     DrawerLayout drawer_layout;
@@ -56,6 +56,30 @@ public class LandingPage  extends AppCompatActivity implements NavigationView.On
     TextView check_box_text;
     FloatingActionButton ae_button;
     FloatingActionButton my_location_button;
+    ConstraintLayout bottom_white_box;
+    ConstraintLayout directions;
+    TextView search_term;
+
+
+
+    // List of all the places, passed around between classes. Necessary for adapters in search bars.
+    static List<Map<String, String>> placesList = new ArrayList<>();
+
+    // History of recent searches
+    static List<String> history = new ArrayList<>();
+
+    // Number of recent searches that we remember
+    final int historySize = 3;
+
+    // Keys used in Hashmap
+    final String[] from = { "name","icon"};
+
+    // Ids of views in listview_layout
+    final int[] to = { R.id.name, R.id.icon};
+
+    // Source and destination vertices
+    static Vertex fromClosestVertex;
+    static Vertex toClosestVertex;
 
 
     @Override
@@ -63,6 +87,7 @@ public class LandingPage  extends AppCompatActivity implements NavigationView.On
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_landing_page);
 
+        main_layout = findViewById(R.id.main_layout);
         top_green_box = findViewById(R.id.top_green_box);
         search_box = findViewById(R.id.search_box);
         drawer_layout = findViewById(R.id.drawer_layout);
@@ -72,6 +97,9 @@ public class LandingPage  extends AppCompatActivity implements NavigationView.On
         check_box_text = findViewById(R.id.check_box_text);
         ae_button = findViewById(R.id.ae_button);
         my_location_button = findViewById(R.id.my_location_button);
+        bottom_white_box = findViewById(R.id.bottom_white_box);
+        directions = findViewById(R.id.directions);
+        search_term = findViewById(R.id.search_term);
 
         MapFragment mapFragment = new MapFragment();
         getSupportFragmentManager().beginTransaction().replace(R.id.map_id, mapFragment);
@@ -82,7 +110,6 @@ public class LandingPage  extends AppCompatActivity implements NavigationView.On
         for(String label: places) {
             Log.d("Label", label);
         }
-
 
         SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(this);
         Set<String> recentSearches = preferences.getStringSet("RecentSearches", null);
@@ -121,20 +148,15 @@ public class LandingPage  extends AppCompatActivity implements NavigationView.On
             } else {
                 hm.put("icon", Integer.toString(R.drawable.marker_50));
             }
+            // TODO add vertex location data in the hm
             placesQueue.add(hm);
         }
 
-
-        final List<Map<String, String>> placesList = new ArrayList<>();
-        for(String place: places) {
-            placesList.add(placesQueue.poll());
+        if(placesList.isEmpty()) {
+            for (String place : places) {
+                placesList.add(placesQueue.poll());
+            }
         }
-
-        // Keys used in Hashmap
-        final String[] from = { "name","icon"};
-
-        // Ids of views in listview_layout
-        final int[] to = { R.id.name, R.id.icon};
 
         // To make search box drop down align correctly
         search_box.setThreshold(1);
@@ -157,9 +179,27 @@ public class LandingPage  extends AppCompatActivity implements NavigationView.On
                 search_box.setAdapter(new SimpleAdapter(getBaseContext(), placesList, R.layout.autocomplete_layout, from, to));
 
                 // RICHIE: from label to vertex
-                Vertex closestVertex = fromLabelToVertex(hm.get("name"));
+                toClosestVertex = fromLabelToVertex(hm.get("name"));
 
                 // TODO add action that moves map to selected place hm.get("name") (which is now closestVertex)
+
+
+                // Make bottom bar containing ->DIRECTIONS button appear
+                bottom_white_box.setVisibility(View.VISIBLE);
+                ae_button.setVisibility(View.INVISIBLE);
+                ConstraintSet constraintSet = new ConstraintSet();
+                constraintSet.clone(main_layout);
+                constraintSet.connect(R.id.my_location_button, ConstraintSet.BOTTOM, R.id.bottom_white_box, ConstraintSet.TOP, dpToPx(16.0F));
+                constraintSet.applyTo(main_layout);
+
+                search_term.setText(toClosestVertex.toString());
+                directions.setOnClickListener(new View.OnClickListener(){
+                    @Override
+                    public void onClick(View view) {
+                        Intent intent = new Intent(getBaseContext(), DirectionsPage.class);
+                        startActivity(intent);
+                    }
+                });
             }
         };
         search_box.setOnItemClickListener(itemClickListener);
@@ -270,8 +310,8 @@ public class LandingPage  extends AppCompatActivity implements NavigationView.On
 
 
         // Make "my location" button responsive
-        Bitmap bMap = BitmapFactory.decodeResource(getResources(), R.drawable.myloc72);
-        Bitmap bMapScaled = Bitmap.createScaledBitmap(bMap, dpToPx(36.0F), dpToPx(36.0F), true);
+        Bitmap bMap = BitmapFactory.decodeResource(getResources(), R.drawable.myloc);
+        Bitmap bMapScaled = Bitmap.createScaledBitmap(bMap, dpToPx(24.0F), dpToPx(24.0F), true);
         my_location_button.setImageBitmap(bMapScaled);
         my_location_button.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -356,7 +396,7 @@ public class LandingPage  extends AppCompatActivity implements NavigationView.On
 
     // Once a search is made, the location is added to the history of searches list (of predetermined,
     // limited capacity), and introduced at the top of @placesList, with a new icon
-    private void addRecentSearch(HashMap<String, String> hm, List<Map<String, String>> placesList, List<String> history) {
+    public void addRecentSearch(HashMap<String, String> hm, List<Map<String, String>> placesList, List<String> history) {
         placesList.remove(hm);
         hm.put("icon", Integer.toString(R.drawable.history_50));
         placesList.add(0, hm);
@@ -536,7 +576,6 @@ public class LandingPage  extends AppCompatActivity implements NavigationView.On
 
         return null;
     }
-
 
     public int dpToPx(Float value) {
         return (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, value, getResources().getDisplayMetrics());
