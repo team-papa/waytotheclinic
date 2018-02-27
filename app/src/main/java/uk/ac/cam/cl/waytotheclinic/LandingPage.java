@@ -2,15 +2,20 @@ package uk.ac.cam.cl.waytotheclinic;
 
 import android.Manifest;
 import android.animation.LayoutTransition;
+import android.content.pm.PackageManager;
 import android.content.Context;
 import android.content.pm.PackageManager;
 import android.content.res.ColorStateList;
 import android.location.Location;
+import android.net.wifi.WifiManager;
 import android.os.Bundle;
 import android.support.constraint.ConstraintLayout;
 import android.support.constraint.ConstraintSet;
 import android.support.design.widget.NavigationView;
 import android.support.v4.app.ActivityCompat;
+import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentManager;
+import android.support.v4.app.FragmentTransaction;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
@@ -19,13 +24,14 @@ import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
 import android.view.*;
 import android.view.inputmethod.InputMethodManager;
+import android.util.Log;
 import android.util.TypedValue;
 import android.widget.AutoCompleteTextView;
 import android.widget.ArrayAdapter;
 import android.widget.ImageButton;
 import android.widget.TextView;
 import android.widget.Toast;
-
+import android.Manifest;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationCallback;
 import com.google.android.gms.location.LocationRequest;
@@ -33,14 +39,11 @@ import com.google.android.gms.location.LocationResult;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.tasks.OnSuccessListener;
 
-
-public class LandingPage  extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener{
+public class LandingPage  extends AppCompatActivity implements LocationFragment.LocationListener, NavigationView.OnNavigationItemSelectedListener {
+    private final String LOCATION_FRAGMENT_TAG = "location-fragment";
+    private final int LOCATION_PERMISSIONS = 1;
 
     private String[] places = new String[]{"Belgium", "Frodo", "France", "Italy", "Germany", "Spain"};
-    private int MY_PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION = 1;
-    FusedLocationProviderClient mFusedLocationClient;
-    LocationRequest mLocationRequest;
-    LocationCallback mLocationCallback;
     private Location mCurrentLocation;
     ConstraintLayout top_green_box;
     AutoCompleteTextView search_box;
@@ -59,8 +62,12 @@ public class LandingPage  extends AppCompatActivity implements NavigationView.On
         nav_view = findViewById(R.id.nav_view);
         menu_button = findViewById(R.id.menu_button);
 
+        LocationFragment locationFragment = new LocationFragment();
         MapFragment mapFragment = new MapFragment();
-        getSupportFragmentManager().beginTransaction().replace(R.id.map_id, mapFragment);
+
+        FragmentManager fm = getSupportFragmentManager();
+        fm.beginTransaction().add(locationFragment, LOCATION_FRAGMENT_TAG).commit();
+        fm.beginTransaction().replace(R.id.map_id, mapFragment).commit();
 
         // Search box functionality
         ArrayAdapter<String> adapter = new ArrayAdapter<String>(
@@ -101,7 +108,7 @@ public class LandingPage  extends AppCompatActivity implements NavigationView.On
 
 
         // I really wish I could get rid of this but I need syncState()
-        ActionBarDrawerToggle toggle =  new ActionBarDrawerToggle(
+        ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
                 this,
                 drawer_layout,
                 R.string.navigation_drawer_open,
@@ -181,63 +188,18 @@ public class LandingPage  extends AppCompatActivity implements NavigationView.On
                 }
             }
         });
-
-        if (ContextCompat.checkSelfPermission(this,
-                Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            ActivityCompat.requestPermissions(this,
-                    new String[]{Manifest.permission.ACCESS_FINE_LOCATION},
-                    MY_PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION);
-        }
-
-        mLocationRequest = new LocationRequest();
-        mLocationRequest.setInterval(10000);
-        mLocationRequest.setFastestInterval(5000);
-        mLocationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
-
-        mLocationCallback = new LocationCallback() {
-            @Override
-            public void onLocationResult(LocationResult locationResult) {
-                for (Location location : locationResult.getLocations()) {
-                    mCurrentLocation = location;
-                    displayLatitude();
-                    displayLongitude();
-                    displayAccuracy();
-                }
-            };
-        };
-
-        startLocationUpdates();
     }
 
     @Override
     public void onRequestPermissionsResult (int requestCode, String[] permissions,
-                                                 int[] grantResults) {
+                                            int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-        startLocationUpdates();
-    }
-
-    private void startLocationUpdates() {
-        if (ContextCompat.checkSelfPermission(this,
-                Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
-            mFusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
-            mFusedLocationClient.requestLocationUpdates(mLocationRequest,
-                    mLocationCallback, null);
-        }
-    }
-
-    public void displayLatitude() {
-        TextView latitude = findViewById(R.id.latitudeText);
-        latitude.setText("Latitude: " + mCurrentLocation.getLatitude());
-    }
-
-    public void displayLongitude() {
-        TextView longitude = findViewById(R.id.longitudeText);
-        longitude.setText("Longitude: " + mCurrentLocation.getLongitude());
-    }
-
-    public void displayAccuracy() {
-        TextView accuracy = findViewById(R.id.accuracyText);
-        accuracy.setText("Accuracy: " + mCurrentLocation.getAccuracy());
+        
+        Fragment frg = getSupportFragmentManager().findFragmentByTag(LOCATION_FRAGMENT_TAG);
+        final FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
+        ft.attach(frg);
+        ft.detach(frg);
+        ft.commit();
     }
 
     @Override
@@ -281,5 +243,37 @@ public class LandingPage  extends AppCompatActivity implements NavigationView.On
 
     public int dpToPx(Float value) {
         return (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, value, getResources().getDisplayMetrics());
+    }
+
+    // Methods below here are called by LocationFragment, part of the interface LocationFragment.LocationListener
+
+    @Override
+    public boolean checkPermissions() {
+        return ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED
+            && ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_WIFI_STATE) == PackageManager.PERMISSION_GRANTED;
+    }
+
+    @Override
+    public void requestPermissions() {
+        ActivityCompat.requestPermissions(this,
+            new String[] {Manifest.permission.ACCESS_FINE_LOCATION,
+                          Manifest.permission.ACCESS_WIFI_STATE},
+            LOCATION_PERMISSIONS);
+    }
+
+    @Override
+    public WifiManager getWifiManager() {
+        return (WifiManager) this.getSystemService(Context.WIFI_SERVICE);
+    }
+
+    @Override
+    public void startLocationUpdates(LocationRequest lr, LocationCallback lc) {
+        LocationServices.getFusedLocationProviderClient(this).requestLocationUpdates(lr, lc, null);
+    }
+
+    @Override
+    public void updateLocation(Location l) {
+        // TODO: implement this
+        Log.i("waytotheclinic", "waytotheclinic location updated: " + l.toString());
     }
 }
