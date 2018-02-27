@@ -200,6 +200,7 @@ public class LandingPage  extends AppCompatActivity implements NavigationView.On
                     @Override
                     public void onClick(View view) {
                         Intent intent = new Intent(getBaseContext(), DirectionsPage.class);
+
                         startActivity(intent);
                     }
                 });
@@ -449,8 +450,18 @@ public class LandingPage  extends AppCompatActivity implements NavigationView.On
     @Override
     public void onBackPressed() {
         drawer_layout = findViewById(R.id.drawer_layout);
+        bottom_white_box = findViewById(R.id.bottom_white_box);
+        search_box = findViewById(R.id.search_box);
         if (drawer_layout.isDrawerOpen(GravityCompat.START)) {
             drawer_layout.closeDrawer(GravityCompat.START);
+        } else if(bottom_white_box != null && bottom_white_box.getVisibility() == View.VISIBLE) {
+            bottom_white_box.setVisibility(View.INVISIBLE);
+            ae_button.setVisibility(View.VISIBLE);
+            ConstraintSet constraintSet = new ConstraintSet();
+            constraintSet.clone(main_layout);
+            constraintSet.connect(R.id.my_location_button, ConstraintSet.BOTTOM, R.id.bottom_white_box, ConstraintSet.TOP, dpToPx(8.0F));
+            constraintSet.applyTo(main_layout);
+            search_box.setText("");
         } else {
             super.onBackPressed();
         }
