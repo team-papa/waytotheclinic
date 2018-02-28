@@ -697,6 +697,7 @@ public class LandingPage  extends AppCompatActivity implements LocationFragment.
         // int floor = (int) l.getAltitude();
 
         MapFragment.Point p = new MapFragment.Point(x, y, 0);
-        mapFragment.setLocation(p);
+        //mapFragment.setLocation(p);
+        mapFragment.setLocation(new MapFragment.Point(26, 97.5, 0));
     }
 }
