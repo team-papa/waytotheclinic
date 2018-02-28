@@ -1,6 +1,7 @@
 package uk.ac.cam.cl.waytotheclinic;
 
 import android.animation.LayoutTransition;
+import android.app.FragmentManager;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -84,9 +85,11 @@ public class LandingPage extends AppCompatActivity implements NavigationView.OnN
     static Vertex fromClosestVertex;
     static Vertex toClosestVertex;
 
+    final FragmentManager fm = getFragmentManager();
+    final static Bundle mapBundle = new Bundle();
 
     @Override
-    public void onCreate(Bundle savedInstanceState) {
+    public void onCreate(final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_landing_page);
 
@@ -104,13 +107,6 @@ public class LandingPage extends AppCompatActivity implements NavigationView.OnN
         bottom_white_box = findViewById(R.id.bottom_white_box);
         directions = findViewById(R.id.directions);
         search_term = findViewById(R.id.search_term);
-
-//        MapFragment mapFragment = new MapFragment();
-//        Bundle map1Bundle = new Bundle();
-//        map1Bundle.putInt("Floor", 1);
-//        mapFragment.setArguments(map1Bundle);
-//        getSupportFragmentManager().beginTransaction().replace(R.id.map_id, mapFragment).commit();
-
 
         // Generate all the searchable labels on the map. Call them places.
         Set<String> places = LocationsProvider.generateLocations(getApplicationContext());
@@ -204,13 +200,14 @@ public class LandingPage extends AppCompatActivity implements NavigationView.OnN
                     @Override
                     public void onClick(View view) {
                         Intent intent = new Intent(getBaseContext(), DirectionsPage.class);
-
+                        fm.putFragment(mapBundle,"map", mapFragment);
                         startActivity(intent);
                     }
                 });
             }
         };
         search_box.setOnItemClickListener(itemClickListener);
+
 
 
         // On click, the menu button opens the side menu and closes the keyboard (if open)
@@ -392,8 +389,6 @@ public class LandingPage extends AppCompatActivity implements NavigationView.OnN
                     return true;
                 }
         });
-
-
     }
 
 
@@ -454,10 +449,13 @@ public class LandingPage extends AppCompatActivity implements NavigationView.OnN
     @Override
     public void onBackPressed() {
         drawer_layout = findViewById(R.id.drawer_layout);
+        DrawerLayout drawer_layout_dir = findViewById(R.id.drawer_layout_dir);
         bottom_white_box = findViewById(R.id.bottom_white_box);
         search_box = findViewById(R.id.search_box);
-        if (drawer_layout.isDrawerOpen(GravityCompat.START)) {
+        if (drawer_layout != null && drawer_layout.isDrawerOpen(GravityCompat.START)) {
             drawer_layout.closeDrawer(GravityCompat.START);
+        } else if  (drawer_layout_dir != null && drawer_layout_dir.isDrawerOpen(GravityCompat.START)) {
+            drawer_layout_dir.closeDrawer(GravityCompat.START);
         } else if(bottom_white_box != null && bottom_white_box.getVisibility() == View.VISIBLE) {
             bottom_white_box.setVisibility(View.INVISIBLE);
             ae_button.setVisibility(View.VISIBLE);

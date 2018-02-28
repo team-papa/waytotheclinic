@@ -189,23 +189,38 @@
     </android.support.constraint.ConstraintLayout>
 
 
+    <fragment
+        android:id="@+id/map_fragment2"
+        android:name="uk.ac.cam.cl.waytotheclinic.MapFragment"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:layout_marginTop="120dp"
+        android:background="@color/colorWhite"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="1.0"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="1.0" />
+
+
     <android.support.constraint.ConstraintLayout
         android:id="@+id/instructions"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
+        android:layout_height="wrap_content"
         android:animateLayoutChanges="true"
-        android:clickable="true"
         android:visibility="invisible"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent">
+        app:layout_constraintStart_toStartOf="parent">
 
 
         <android.support.constraint.ConstraintLayout
             android:id="@+id/instructions_header"
             android:layout_width="match_parent"
             android:layout_height="30dp"
+            android:clickable="true"
+            android:background="@color/colorDirtyWhite"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent">
@@ -249,6 +264,7 @@
             android:id="@+id/instructions_list"
             android:layout_width="match_parent"
             android:layout_height="0dp"
+            android:background="@color/colorDirtyWhite"
             android:divider="@android:color/transparent"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"

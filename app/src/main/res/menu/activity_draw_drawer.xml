@@ -8,12 +8,12 @@
         <item
             android:id="@+id/nav_first_floor"
             android:icon="@drawable/first_50"
-            android:title="First floor"
-            android:checked="true"/>
+            android:title="First floor" />
         <item
             android:id="@+id/nav_second_floor"
             android:icon="@drawable/second_50"
-            android:title="Second floor" />
+            android:title="Second floor"
+            android:checked="true"/>
     </group>
 
 </menu>

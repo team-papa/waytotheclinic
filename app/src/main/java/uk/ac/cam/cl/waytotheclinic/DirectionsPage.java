@@ -2,7 +2,6 @@ package uk.ac.cam.cl.waytotheclinic;
 
 import android.animation.LayoutTransition;
 import android.content.Context;
-import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.support.constraint.ConstraintLayout;
@@ -11,13 +10,11 @@ import android.support.design.widget.NavigationView;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
-import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.util.TypedValue;
+import android.view.Menu;
 import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
-import android.view.ViewGroup;
 import android.view.animation.Animation;
 import android.view.animation.RotateAnimation;
 import android.view.inputmethod.InputMethodManager;
@@ -26,7 +23,6 @@ import android.widget.AutoCompleteTextView;
 import android.widget.CheckBox;
 import android.widget.CompoundButton;
 import android.widget.ImageButton;
-import android.widget.ListAdapter;
 import android.widget.ListView;
 import android.widget.SimpleAdapter;
 import android.widget.TextView;
@@ -47,9 +43,11 @@ public class DirectionsPage extends LandingPage {
     TextView check_box_text;
     ListView instructions_list;
     ConstraintLayout instructions;
-    DrawerLayout drawer_layout2;
+    DrawerLayout drawer_layout_dir;
 
     ConstraintLayout instructions_header;
+    MapFragment mapFragment2;
+
 
     Map<String, String> extrahm = new HashMap<>();
 
@@ -61,6 +59,7 @@ public class DirectionsPage extends LandingPage {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_directions_page);
 
+        mapFragment2 = (MapFragment) getFragmentManager().getFragment(mapBundle, "map");
         back_button = findViewById(R.id.back_button);
         from_box = findViewById(R.id.from_box);
         to_box = findViewById(R.id.to_box);
@@ -69,18 +68,18 @@ public class DirectionsPage extends LandingPage {
         instructions_list = findViewById(R.id.instructions_list);
         instructions = findViewById(R.id.instructions);
         instructions_header = findViewById(R.id.instructions_header);
-        drawer_layout2 = findViewById(R.id.drawer_layout2);
-        NavigationView nav_view = findViewById(R.id.nav_view2);
+        drawer_layout_dir = findViewById(R.id.drawer_layout_dir);
+        NavigationView nav_view = findViewById(R.id.nav_view_dir);
 
 
 
         // I really wish I could get rid of this but I need syncState()
         ActionBarDrawerToggle toggle =  new ActionBarDrawerToggle(
                 this,
-                drawer_layout2,
+                drawer_layout_dir,
                 R.string.navigation_drawer_open,
                 R.string.navigation_drawer_close);
-        drawer_layout2.addDrawerListener(toggle);
+        drawer_layout_dir.addDrawerListener(toggle);
         toggle.syncState();
 
         nav_view.setNavigationItemSelectedListener(this);
@@ -237,9 +236,6 @@ public class DirectionsPage extends LandingPage {
             }
         };
         instructions_header.setOnTouchListener(swipeListener);
-        instructions.setOnTouchListener(swipeListener);
-
-
     }
 
 
@@ -313,21 +309,22 @@ public class DirectionsPage extends LandingPage {
     }
     @Override
     public boolean onNavigationItemSelected(MenuItem item) {
-        drawer_layout2 = findViewById(R.id.drawer_layout2);
+        drawer_layout_dir = findViewById(R.id.drawer_layout_dir);
 
         // Handle side-menu item-clicks
         switch (item.getItemId()) {
             case R.id.nav_first_floor:
-                // TODO Switch map to first floor
+                mapFragment.setFloor(1);
                 Toast.makeText(getApplicationContext(), "First floor", Toast.LENGTH_SHORT).show();
                 break;
             case R.id.nav_second_floor:
-                // TODO Switch map to second floor
+                mapFragment.setFloor(2);
                 Toast.makeText(getApplicationContext(), "Second floor", Toast.LENGTH_SHORT).show();
                 break;
         }
 
-        drawer_layout2.closeDrawer(GravityCompat.START);
+        drawer_layout_dir.closeDrawer(GravityCompat.START);
         return true;
     }
+
 }

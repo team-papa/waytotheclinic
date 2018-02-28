@@ -121,6 +121,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback{
         locOverlay = googleMap.addTileOverlay(new TileOverlayOptions().zIndex(3).tileProvider(locTileProvider));
         //endregion
 
+        this.setFloor(2);
     }
 
     private boolean tilePopulated(int f, int z, int x, int y){
@@ -241,9 +242,9 @@ public class MapFragment extends Fragment implements OnMapReadyCallback{
     @Override
     public void onDestroy(){
         super.onDestroy();
-        if(mapView == null)
+/*        if(mapView == null)
             mapView = getActivity().findViewById(R.id.mapView);
-        mapView.onDestroy();
+        mapView.onDestroy();*/
     }
 
     @Override
