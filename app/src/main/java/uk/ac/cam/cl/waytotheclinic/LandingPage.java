@@ -548,7 +548,7 @@ public class LandingPage  extends AppCompatActivity implements NavigationView.On
 
 
     public Vertex fromLabelToVertex (String searchTerm) {
-        // my current location
+        // TODO make myLocation to always get updated to the user's current location
         Vertex myLocation = new Vertex(100, 200, 3);
 
         HashMap<Vertex, String> bestVertices = new HashMap<>();
