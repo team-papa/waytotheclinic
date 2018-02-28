@@ -2,12 +2,17 @@ package uk.ac.cam.cl.waytotheclinic;
 
 import android.animation.LayoutTransition;
 import android.content.Context;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.res.ColorStateList;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.os.Bundle;
+import android.os.Handler;
 import android.preference.PreferenceManager;
 import android.support.constraint.ConstraintLayout;
 import android.support.constraint.ConstraintSet;
+import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.NavigationView;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.view.GravityCompat;
@@ -15,17 +20,20 @@ import android.support.v4.widget.DrawerLayout;
 import android.support.v4.widget.ImageViewCompat;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.view.*;
 import android.view.inputmethod.InputMethodManager;
 import android.util.TypedValue;
 import android.widget.AdapterView;
 import android.widget.CheckBox;
+import android.widget.CompoundButton;
 import android.widget.ImageButton;
 import android.widget.SimpleAdapter;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -38,17 +46,44 @@ import java.util.TreeSet;
 
 public class LandingPage extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener{
 
-    private String[] places = new String[]{"Belgium", "France", "Frodo", "Germany", "Italy", "Spain"};
-    private final int historySize = 3;
-    private List<String> history = new ArrayList<>();
+    // UI Components
+    ConstraintLayout main_layout;
     ConstraintLayout top_green_box;
     CustomAutoCompleteTextView search_box;
     DrawerLayout drawer_layout;
     NavigationView nav_view;
     ImageButton menu_button;
-    CheckBox checkBox;
-    TextView checkBoxText;
     MapFragment mapFragment;
+    CheckBox check_box;
+    TextView check_box_text;
+    FloatingActionButton ae_button;
+    FloatingActionButton my_location_button;
+    ConstraintLayout bottom_white_box;
+    ConstraintLayout directions;
+    TextView search_term;
+
+
+    // Lift/stairs checkbox
+    static boolean noStairs = true;
+
+    // List of all the places, passed around between classes. Necessary for adapters in search bars.
+    static List<Map<String, String>> placesList = new ArrayList<>();
+
+    // History of recent searches
+    static List<String> history = new ArrayList<>();
+
+    // Number of recent searches that we remember
+    final int historySize = 3;
+
+    // Keys used in Hashmap
+    final String[] from = { "name","icon"};
+
+    // Ids of views in listview_layout
+    final int[] to = { R.id.name, R.id.icon};
+
+    // Source and destination vertices
+    static Vertex fromClosestVertex;
+    static Vertex toClosestVertex;
 
 
     @Override
@@ -57,11 +92,19 @@ public class LandingPage extends AppCompatActivity implements NavigationView.OnN
         setContentView(R.layout.activity_landing_page);
 
         mapFragment = (MapFragment)getFragmentManager().findFragmentById(R.id.map_fragment);
+        main_layout = findViewById(R.id.main_layout);
         top_green_box = findViewById(R.id.top_green_box);
         search_box = findViewById(R.id.search_box);
         drawer_layout = findViewById(R.id.drawer_layout);
         nav_view = findViewById(R.id.nav_view);
         menu_button = findViewById(R.id.menu_button);
+        check_box = findViewById(R.id.check_box);
+        check_box_text = findViewById(R.id.check_box_text);
+        ae_button = findViewById(R.id.ae_button);
+        my_location_button = findViewById(R.id.my_location_button);
+        bottom_white_box = findViewById(R.id.bottom_white_box);
+        directions = findViewById(R.id.directions);
+        search_term = findViewById(R.id.search_term);
 
 //        MapFragment mapFragment = new MapFragment();
 //        Bundle map1Bundle = new Bundle();
@@ -69,6 +112,12 @@ public class LandingPage extends AppCompatActivity implements NavigationView.OnN
 //        mapFragment.setArguments(map1Bundle);
 //        getSupportFragmentManager().beginTransaction().replace(R.id.map_id, mapFragment).commit();
 
+
+        // Generate all the searchable labels on the map. Call them places.
+        Set<String> places = LocationsProvider.generateLocations(getApplicationContext());
+        for(String label: places) {
+            Log.d("Label", label);
+        }
 
         SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(this);
         Set<String> recentSearches = preferences.getStringSet("RecentSearches", null);
@@ -107,24 +156,19 @@ public class LandingPage extends AppCompatActivity implements NavigationView.OnN
             } else {
                 hm.put("icon", Integer.toString(R.drawable.marker_50));
             }
+            // TODO add vertex location data in the hm
             placesQueue.add(hm);
         }
 
-
-        final List<Map<String, String>> placesList = new ArrayList<Map<String, String>>();
-        for(int i=0; i<places.length; i++) {
-            placesList.add(placesQueue.poll());
+        if(placesList.isEmpty()) {
+            for (String place : places) {
+                placesList.add(placesQueue.poll());
+            }
         }
-
-        // Keys used in Hashmap
-        final String[] from = { "name","icon"};
-
-        // Ids of views in listview_layout
-        final int[] to = { R.id.name, R.id.icon};
 
         // To make search box drop down align correctly
         search_box.setThreshold(1);
-        search_box.setDropDownHeight(dpToPx(300.0F));
+        search_box.setDropDownHeight(dpToPx(150.0F));
         search_box.setAdapter(new SimpleAdapter(getBaseContext(), placesList, R.layout.autocomplete_layout, from, to));
         search_box.setDropDownHorizontalOffset(dpToPx(-8.0F));
         search_box.setDropDownVerticalOffset(dpToPx(+10.0F));
@@ -135,14 +179,36 @@ public class LandingPage extends AppCompatActivity implements NavigationView.OnN
             public void onItemClick(AdapterView<?> arg0, View arg1, int position, long id) {
                 HashMap<String, String> hm = (HashMap<String, String>) arg0.getAdapter().getItem(position);
                 search_box.clearFocus();
-                search_box.setText(hm.get("name"));
                 swipeUp();
 
                 // Add item to recent searches
                 addRecentSearch(hm, placesList, history);
                 search_box.setAdapter(new SimpleAdapter(getBaseContext(), placesList, R.layout.autocomplete_layout, from, to));
 
-                // TODO add action that moves map to selected place hm.get("name")
+                // RICHIE: from label to vertex
+                toClosestVertex = fromLabelToVertex(hm.get("name"));
+                search_box.setText(toClosestVertex.toString());
+
+                // TODO add action that moves map to selected place hm.get("name") (which is now closestVertex)
+
+
+                // Make bottom bar containing ->DIRECTIONS button appear
+                bottom_white_box.setVisibility(View.VISIBLE);
+                ae_button.setVisibility(View.INVISIBLE);
+                ConstraintSet constraintSet = new ConstraintSet();
+                constraintSet.clone(main_layout);
+                constraintSet.connect(R.id.my_location_button, ConstraintSet.BOTTOM, R.id.bottom_white_box, ConstraintSet.TOP, dpToPx(16.0F));
+                constraintSet.applyTo(main_layout);
+
+                search_term.setText(toClosestVertex.toString());
+                directions.setOnClickListener(new View.OnClickListener(){
+                    @Override
+                    public void onClick(View view) {
+                        Intent intent = new Intent(getBaseContext(), DirectionsPage.class);
+
+                        startActivity(intent);
+                    }
+                });
             }
         };
         search_box.setOnItemClickListener(itemClickListener);
@@ -239,19 +305,96 @@ public class LandingPage extends AppCompatActivity implements NavigationView.OnN
         });
 
 
-        // Make text associated with checkbox clickable
-        checkBox = findViewById(R.id.checkBox);
-        checkBoxText = findViewById(R.id.checkBoxText);
-        checkBoxText.setOnClickListener(new View.OnClickListener() {
+        // Make text associated with checkbox clickable + change noStairs accordingly
+        View.OnClickListener onClickListener = new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                if(checkBox.isChecked()) {
-                    checkBox.setChecked(false);
+                if(check_box.isChecked()) {
+                    check_box.setChecked(false);
                 } else {
-                    checkBox.setChecked(true);
+                    check_box.setChecked(true);
                 }
             }
+        };
+        check_box_text.setOnClickListener(onClickListener);
+
+        check_box.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton compoundButton, boolean b) {
+                noStairs = b;
+            }
         });
+
+
+        // Make "my location" button responsive
+        Bitmap bMap = BitmapFactory.decodeResource(getResources(), R.drawable.myloc);
+        Bitmap bMapScaled = Bitmap.createScaledBitmap(bMap, dpToPx(24.0F), dpToPx(24.0F), true);
+        my_location_button.setImageBitmap(bMapScaled);
+        my_location_button.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Toast.makeText(getApplicationContext(), "My location!", Toast.LENGTH_SHORT).show();
+                // TODO move map to user's location
+            }
+        });
+
+
+        // Make AE button responsive
+        final long timeoutBetweenTaps = 8 * ViewConfiguration.getTapTimeout();
+        ae_button.setOnTouchListener(new View.OnTouchListener() {
+                Handler handler = new Handler();
+                int numberOfTaps = 0;
+                long lastTapTimeMs = 0;
+                long touchDownMs = 0;
+
+                @Override
+                public boolean onTouch(View view, MotionEvent event) {
+                    switch (event.getAction()) {
+                        case MotionEvent.ACTION_DOWN:
+                            touchDownMs = System.currentTimeMillis();
+                            break;
+                        case MotionEvent.ACTION_UP:
+                            handler.removeCallbacksAndMessages(null);
+
+                            if ((System.currentTimeMillis() - touchDownMs) > timeoutBetweenTaps) {
+                                //it was not a tap
+
+                                numberOfTaps = 0;
+                                lastTapTimeMs = 0;
+                                break;
+                            }
+
+                            if (numberOfTaps > 0
+                                    && (System.currentTimeMillis() - lastTapTimeMs) < timeoutBetweenTaps) {
+                                numberOfTaps += 1;
+                                if (numberOfTaps == 2)
+                                    Toast.makeText(getApplicationContext(), "1 more tap", Toast.LENGTH_SHORT).show();
+
+                            } else {
+                                Toast.makeText(getApplicationContext(), "2 more taps", Toast.LENGTH_SHORT).show();
+                                numberOfTaps = 1;
+                            }
+
+                            lastTapTimeMs = System.currentTimeMillis();
+
+                            if (numberOfTaps == 3) {
+                                Toast.makeText(getApplicationContext(), "Here's the way to the closest A&E room", Toast.LENGTH_SHORT).show();
+                                // TODO show path to nearest AE room
+
+                            } else if (numberOfTaps == 2) {
+                                handler.postDelayed(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        Toast.makeText(getApplicationContext(), "Tap faster!", Toast.LENGTH_SHORT).show();
+                                    }
+                                }, timeoutBetweenTaps);
+                            }
+                    }
+                    return true;
+                }
+        });
+
+
     }
 
 
@@ -270,7 +413,7 @@ public class LandingPage extends AppCompatActivity implements NavigationView.OnN
 
     // Once a search is made, the location is added to the history of searches list (of predetermined,
     // limited capacity), and introduced at the top of @placesList, with a new icon
-    private void addRecentSearch(HashMap<String, String> hm, List<Map<String, String>> placesList, List<String> history) {
+    public void addRecentSearch(HashMap<String, String> hm, List<Map<String, String>> placesList, List<String> history) {
         placesList.remove(hm);
         hm.put("icon", Integer.toString(R.drawable.history_50));
         placesList.add(0, hm);
@@ -312,13 +455,30 @@ public class LandingPage extends AppCompatActivity implements NavigationView.OnN
     @Override
     public void onBackPressed() {
         drawer_layout = findViewById(R.id.drawer_layout);
+        bottom_white_box = findViewById(R.id.bottom_white_box);
+        search_box = findViewById(R.id.search_box);
         if (drawer_layout.isDrawerOpen(GravityCompat.START)) {
             drawer_layout.closeDrawer(GravityCompat.START);
+        } else if(bottom_white_box != null && bottom_white_box.getVisibility() == View.VISIBLE) {
+            bottom_white_box.setVisibility(View.INVISIBLE);
+            ae_button.setVisibility(View.VISIBLE);
+            ConstraintSet constraintSet = new ConstraintSet();
+            constraintSet.clone(main_layout);
+            constraintSet.connect(R.id.my_location_button, ConstraintSet.BOTTOM, R.id.bottom_white_box, ConstraintSet.TOP, dpToPx(8.0F));
+            constraintSet.applyTo(main_layout);
+            search_box.setText("");
         } else {
             super.onBackPressed();
         }
     }
 
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        check_box = findViewById(R.id.check_box);
+        check_box.setChecked(noStairs);
+    }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -366,6 +526,8 @@ public class LandingPage extends AppCompatActivity implements NavigationView.OnN
         constraintSet.applyTo(top_green_box);
         search_box.setDropDownHorizontalOffset(dpToPx(-8.0F));
         search_box.clearFocus();
+        search_box.setDropDownHeight(dpToPx(150.0F));
+
     }
 
     public void swipeUp() {
@@ -386,6 +548,70 @@ public class LandingPage extends AppCompatActivity implements NavigationView.OnN
         constraintSet.applyTo(top_green_box);
 
         search_box.setDropDownHorizontalOffset(dpToPx(-50.0F));
+        search_box.setDropDownHeight(dpToPx(280.0F));
+    }
+
+
+    public Vertex fromLabelToVertex (String searchTerm) {
+        // TODO make myLocation to always get updated to the user's current location
+        Vertex myLocation = new Vertex(100, 200, 3);
+
+        HashMap<Vertex, String> bestVertices = new HashMap<>();
+        int bestLCS = 1; // set best LCS to 1, so we ignore vertices that have 0 match
+
+        ArrayList<String> searchArray = new ArrayList<>(
+                Arrays.asList(searchTerm.toLowerCase().split(" ")));
+
+        Set<Vertex> vertexSet = LocationsProvider.generateVertices(getApplicationContext());
+
+        for (Vertex v : vertexSet) {
+
+            for (String label : v.getLabels()) {
+                if(label != null) {
+                    ArrayList<String> labelArray = new ArrayList<>(
+                            Arrays.asList(label.toLowerCase().split(" ")));
+
+                    int currLCS = new LongestCommonSubsequence<String>
+                            (searchArray, labelArray).getLCS().size();
+
+                    if (currLCS == bestLCS) {
+                        bestVertices.put(v, label);
+                    } else if (currLCS > bestLCS) {
+                        bestVertices = new HashMap<>();
+                        bestLCS = currLCS;
+                        bestVertices.put(v, label);
+                    }
+                }
+            }
+        }
+
+        // check if no vertices match
+        if (bestVertices.size() > 0) {
+
+            // choose closest one vertex
+            int closest = Integer.MAX_VALUE;
+            Vertex closestVertex = null;
+            for (Map.Entry<Vertex, String> entry : bestVertices.entrySet()) {
+                Vertex v = entry.getKey();
+                String label = entry.getValue();
+
+                int currDistance = VertexComparator.manhattanDistance(myLocation, v);
+                System.out.format("%s %s %d\n", v, label, currDistance);
+
+                if (currDistance < closest) {
+                    closest = currDistance;
+                    closestVertex = v;
+                }
+            }
+
+            System.out.println("Best vertex: " + closestVertex);
+
+            return closestVertex;
+        } else {
+            System.out.println("No vertices found. Search for something else?");
+        }
+
+        return null;
     }
 
     public int dpToPx(Float value) {
