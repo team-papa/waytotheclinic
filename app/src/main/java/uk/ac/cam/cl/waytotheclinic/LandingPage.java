@@ -51,7 +51,6 @@ public class LandingPage extends AppCompatActivity implements NavigationView.OnN
     ConstraintLayout top_green_box;
     CustomAutoCompleteTextView search_box;
     DrawerLayout drawer_layout;
-    NavigationView nav_view;
     ImageButton menu_button;
     MapFragment mapFragment;
     CheckBox check_box;
@@ -96,7 +95,7 @@ public class LandingPage extends AppCompatActivity implements NavigationView.OnN
         top_green_box = findViewById(R.id.top_green_box);
         search_box = findViewById(R.id.search_box);
         drawer_layout = findViewById(R.id.drawer_layout);
-        nav_view = findViewById(R.id.nav_view);
+        NavigationView nav_view = findViewById(R.id.nav_view);
         menu_button = findViewById(R.id.menu_button);
         check_box = findViewById(R.id.check_box);
         check_box_text = findViewById(R.id.check_box_text);
