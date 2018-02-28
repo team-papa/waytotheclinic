@@ -20,6 +20,8 @@ import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapView;
 import com.google.android.gms.maps.MapsInitializer;
 import com.google.android.gms.maps.OnMapReadyCallback;
+import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.Tile;
 import com.google.android.gms.maps.model.TileOverlay;
 import com.google.android.gms.maps.model.TileOverlayOptions;
@@ -149,7 +151,18 @@ public class MapFragment extends Fragment implements OnMapReadyCallback{
     }
 
     public void setLocation(Point loc){
+        Log.d("MapFragment", "location = " + loc.x + " " + loc.y);
         locTileProvider.setLocation(loc);
+        googleMap.addMarker( new MarkerOptions()
+                .title("Current Location")
+                .position( new LatLng( loc.x, loc.y ))
+        );
+        /*googleMap.setOnCameraMoveListener(new GoogleMap.OnCameraMoveListener() {
+            @Override
+            public void onCameraMove() {
+                Log.d("MapFragment", googleMap.getCameraPosition().toString());
+            }
+        });*/
 
         //invalidate cache to cause update
         locOverlay.clearTileCache();
@@ -295,7 +308,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback{
 
     //endregion
 
-    public class Point{
+    public static class Point{
         double x;
         double y;
         int floor;

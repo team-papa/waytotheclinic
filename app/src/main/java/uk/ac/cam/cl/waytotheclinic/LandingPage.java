@@ -689,7 +689,15 @@ public class LandingPage  extends AppCompatActivity implements LocationFragment.
 
     @Override
     public void updateLocation(Location l) {
-        // TODO: implement this
         Log.i("waytotheclinic", "waytotheclinic location updated: " + l.toString());
+
+        double x = (l.getLatitude() - 52.173154) / (52.175751 - 52.173154) * (902 - 176) + 176;
+        double y = (l.getLongitude() - 0.138020) / (0.143265 - 0.138020) * (562 - 362) + 562;
+        // Floor number is altitude when we have data from WiFi
+        // int floor = (int) l.getAltitude();
+
+        MapFragment.Point p = new MapFragment.Point(x, y, 0);
+        //mapFragment.setLocation(p);
+        mapFragment.setLocation(new MapFragment.Point(26, 97.5, 0));
     }
 }
