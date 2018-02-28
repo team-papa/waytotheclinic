@@ -295,7 +295,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback{
 
     //endregion
 
-    public class Point{
+    public static class Point{
         double x;
         double y;
         int floor;
