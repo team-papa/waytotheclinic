@@ -304,7 +304,7 @@ public class DirectionsPage extends LandingPage {
 
 
             // TODO render path between fromClosestVertex to toClosestVertex
-            mapFragment2.setPath(path, 2048);
+            mapFragment2.setPath(path, 960);
         }
     }
 
