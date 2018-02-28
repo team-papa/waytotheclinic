@@ -304,9 +304,12 @@ public class DirectionsPage extends LandingPage {
 
 
             // TODO render path between fromClosestVertex to toClosestVertex
-
+            mapFragment2.setPath(path, 2048);
         }
     }
+
+
+
     @Override
     public boolean onNavigationItemSelected(MenuItem item) {
         drawer_layout_dir = findViewById(R.id.drawer_layout_dir);
@@ -314,11 +317,11 @@ public class DirectionsPage extends LandingPage {
         // Handle side-menu item-clicks
         switch (item.getItemId()) {
             case R.id.nav_first_floor:
-                mapFragment2.setFloor(1);
+                mapFragment2.setFloor(2);
                 Toast.makeText(getApplicationContext(), "First floor", Toast.LENGTH_SHORT).show();
                 break;
             case R.id.nav_second_floor:
-                mapFragment2.setFloor(2);
+                mapFragment2.setFloor(3);
                 Toast.makeText(getApplicationContext(), "Second floor", Toast.LENGTH_SHORT).show();
                 break;
         }

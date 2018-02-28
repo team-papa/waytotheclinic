@@ -491,12 +491,13 @@ public class LandingPage extends AppCompatActivity implements NavigationView.OnN
 
         // Handle side-menu item-clicks
         switch (item.getItemId()) {
+            //todo fix floors
             case R.id.nav_first_floor:
-                mapFragment.setFloor(1);
+                mapFragment.setFloor(2);
                 Toast.makeText(getApplicationContext(), "First floor", Toast.LENGTH_SHORT).show();
                 break;
             case R.id.nav_second_floor:
-                mapFragment.setFloor(2);
+                mapFragment.setFloor(3);
                 Toast.makeText(getApplicationContext(), "Second floor", Toast.LENGTH_SHORT).show();
                 break;
         }

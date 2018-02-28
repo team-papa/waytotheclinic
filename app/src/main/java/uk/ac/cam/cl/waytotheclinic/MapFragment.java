@@ -124,6 +124,30 @@ public class MapFragment extends Fragment implements OnMapReadyCallback{
         mapView.invalidate();
     }
 
+    public void setPath(List<Edge> edgePath, double imgSize){
+        final int edgeZOffset = 2;
+
+        List<Point> result = new ArrayList<>();
+        if(edgePath.size() == 0)
+            return;
+
+        Vertex pre = edgePath.get(0).getInVertex();
+        result.add(getPointFromVertex(pre, edgeZOffset, imgSize));
+        for(Edge edge : edgePath){
+            Vertex post = edge.getOutVertex();
+            result.add(getPointFromVertex(post, edgeZOffset, imgSize));
+        }
+
+        setPath(result);
+    }
+
+    private Point getPointFromVertex(Vertex v, int ZOffset, double imgSize){
+        double x = ((double)v.getX())/imgSize;
+        double y = ((double)v.getY())/imgSize;
+        int floor = v.getZ() + ZOffset;
+        return new Point(x, y, floor);
+    }
+
     public void setLocation(Point loc){
         locTileProvider.setLocation(loc);
 
