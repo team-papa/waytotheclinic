@@ -698,6 +698,6 @@ public class LandingPage  extends AppCompatActivity implements LocationFragment.
 
         MapFragment.Point p = new MapFragment.Point(x, y, 0);
         //mapFragment.setLocation(p);
-        mapFragment.setLocation(new MapFragment.Point(26, 97.5, 0));
+        mapFragment.setLocation(new MapFragment.Point(26, 98.6, 0));
     }
 }
