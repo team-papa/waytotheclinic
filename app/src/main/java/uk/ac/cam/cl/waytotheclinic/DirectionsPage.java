@@ -7,9 +7,14 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.support.constraint.ConstraintLayout;
 import android.support.constraint.ConstraintSet;
+import android.support.design.widget.NavigationView;
+import android.support.v4.view.GravityCompat;
+import android.support.v4.widget.DrawerLayout;
+import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.TypedValue;
+import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
@@ -42,6 +47,8 @@ public class DirectionsPage extends LandingPage {
     TextView check_box_text;
     ListView instructions_list;
     ConstraintLayout instructions;
+    DrawerLayout drawer_layout2;
+
     ConstraintLayout instructions_header;
 
     Map<String, String> extrahm = new HashMap<>();
@@ -62,6 +69,21 @@ public class DirectionsPage extends LandingPage {
         instructions_list = findViewById(R.id.instructions_list);
         instructions = findViewById(R.id.instructions);
         instructions_header = findViewById(R.id.instructions_header);
+        drawer_layout2 = findViewById(R.id.drawer_layout2);
+        NavigationView nav_view = findViewById(R.id.nav_view2);
+
+
+
+        // I really wish I could get rid of this but I need syncState()
+        ActionBarDrawerToggle toggle =  new ActionBarDrawerToggle(
+                this,
+                drawer_layout2,
+                R.string.navigation_drawer_open,
+                R.string.navigation_drawer_close);
+        drawer_layout2.addDrawerListener(toggle);
+        toggle.syncState();
+
+        nav_view.setNavigationItemSelectedListener(this);
 
 
         // Retrieve value of checkbox
@@ -289,5 +311,23 @@ public class DirectionsPage extends LandingPage {
 
         }
     }
+    @Override
+    public boolean onNavigationItemSelected(MenuItem item) {
+        drawer_layout2 = findViewById(R.id.drawer_layout2);
 
+        // Handle side-menu item-clicks
+        switch (item.getItemId()) {
+            case R.id.nav_first_floor:
+                // TODO Switch map to first floor
+                Toast.makeText(getApplicationContext(), "First floor", Toast.LENGTH_SHORT).show();
+                break;
+            case R.id.nav_second_floor:
+                // TODO Switch map to second floor
+                Toast.makeText(getApplicationContext(), "Second floor", Toast.LENGTH_SHORT).show();
+                break;
+        }
+
+        drawer_layout2.closeDrawer(GravityCompat.START);
+        return true;
+    }
 }
