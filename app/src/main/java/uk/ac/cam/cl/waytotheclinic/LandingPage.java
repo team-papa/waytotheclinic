@@ -86,7 +86,7 @@ public class LandingPage extends AppCompatActivity implements NavigationView.OnN
     static Vertex toClosestVertex;
 
     final FragmentManager fm = getFragmentManager();
-    final static Bundle mapBundle = new Bundle();
+//    final static Bundle mapBundle = new Bundle();
 
     @Override
     public void onCreate(final Bundle savedInstanceState) {
@@ -200,7 +200,7 @@ public class LandingPage extends AppCompatActivity implements NavigationView.OnN
                     @Override
                     public void onClick(View view) {
                         Intent intent = new Intent(getBaseContext(), DirectionsPage.class);
-                        fm.putFragment(mapBundle,"map", mapFragment);
+//                        fm.putFragment(mapBundle,"map", mapFragment);
                         startActivity(intent);
                     }
                 });

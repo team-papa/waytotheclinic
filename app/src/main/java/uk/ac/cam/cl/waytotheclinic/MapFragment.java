@@ -18,6 +18,7 @@ import android.widget.Button;
 
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapView;
+import com.google.android.gms.maps.MapsInitializer;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.model.Tile;
 import com.google.android.gms.maps.model.TileOverlay;
@@ -52,38 +53,6 @@ public class MapFragment extends Fragment implements OnMapReadyCallback{
 
     private PathTileProvider pathTileProvider;
     private LocTileProvider locTileProvider;
-//    private  location;
-
-    @Nullable
-    @Override
-    public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        View view = inflater.inflate(R.layout.map_view, container, false);
-
-        Bundle args = getArguments();
-        if(args != null)
-            Floor = args.getInt("Floor");
-
-        Thread urlLoader = new Thread(new Runnable() {
-            @Override
-            public void run() {
-                URL url = null;
-                try {
-                    url = new URL("http://cjj39.user.srcf.net/WayToTheClinic/populatedTiles.txt");
-                    Scanner s = new Scanner(new BufferedInputStream(url.openStream()));
-                    String input = s.nextLine();
-                    String[] splitInput = input.split(";");
-                    populatedTiles = Arrays.copyOfRange(splitInput, 0, splitInput.length - 1);
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
-        });
-
-        urlLoader.start();
-
-        return view;
-    }
 
     @Override
     public void onMapReady(GoogleMap googleMap) {
@@ -163,29 +132,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback{
         mapView.invalidate();
     }
 
-//    public static void createPathFromString(Bitmap map, List<Pair> coords){
-//        Canvas canvas = new Canvas(map);
-//        canvas.drawColor(Color.TRANSPARENT);
-//        Paint paint = new Paint();
-//        paint.setARGB(255, 255, 0, 0);
-//        double scaling = 1.868;
-//        for(Pair p : coords){
-////            canvas.drawPoint((int)Math.floor(p.a * scaling), (int)Math.floor(p.b * scaling), paint);
-//            int radius = 2;
-//            int x = (int)Math.floor(p.a * scaling);
-//            int y = (int)Math.floor(p.b * scaling);
-//            canvas.drawCircle(x, y, radius, paint);
-//        }
-//        map.prepareToDraw();
-//    }
-
     //region android boilerplate to get mapView working
-    private static final String MAPVIEW_BUNDLE_KEY = "MapViewBundleKey";
-
-    @Override
-    public void onCreate(Bundle savedInstanceState){
-        super.onCreate(savedInstanceState);
-    }
 
     @Override
     public void onActivityCreated(Bundle savedInstanceState){
@@ -200,6 +147,58 @@ public class MapFragment extends Fragment implements OnMapReadyCallback{
         }
 
         mapView.onCreate(mapViewBundle);
+    }
+
+    private static final String MAPVIEW_BUNDLE_KEY = "MapViewBundleKey";
+    Bundle savedInstanceBundle;
+
+    @Override
+    public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        View inflatedView = inflater.inflate(R.layout.map_view, container, false);
+
+        Bundle args = getArguments();
+        if(args != null)
+            Floor = args.getInt("Floor");
+
+        Thread urlLoader = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                URL url = null;
+                try {
+                    url = new URL("http://cjj39.user.srcf.net/WayToTheClinic/populatedTiles.txt");
+                    Scanner s = new Scanner(new BufferedInputStream(url.openStream()));
+                    String input = s.nextLine();
+                    String[] splitInput = input.split(";");
+                    populatedTiles = Arrays.copyOfRange(splitInput, 0, splitInput.length - 1);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        });
+
+        urlLoader.start();
+
+
+        MapsInitializer.initialize(getActivity());
+        if(mapView == null)
+            mapView = inflatedView.findViewById(R.id.mapView);
+        mapView.onCreate(savedInstanceBundle);
+
+        return inflatedView;
+    }
+
+    @Override
+    public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        if (mapView == null)
+            mapView = getActivity().findViewById(R.id.mapView);
+
+        Bundle mapViewBundle = null;
+        if (savedInstanceState != null) {
+            mapViewBundle = savedInstanceState.getBundle(MAPVIEW_BUNDLE_KEY);
+        }
+        savedInstanceBundle = mapViewBundle;
     }
 
     @Override

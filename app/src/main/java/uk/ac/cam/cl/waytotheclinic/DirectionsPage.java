@@ -59,7 +59,7 @@ public class DirectionsPage extends LandingPage {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_directions_page);
 
-        mapFragment2 = (MapFragment) getFragmentManager().getFragment(mapBundle, "map");
+        mapFragment2 = (MapFragment) getFragmentManager().findFragmentById(R.id.map_fragment2);
         back_button = findViewById(R.id.back_button);
         from_box = findViewById(R.id.from_box);
         to_box = findViewById(R.id.to_box);
@@ -314,11 +314,11 @@ public class DirectionsPage extends LandingPage {
         // Handle side-menu item-clicks
         switch (item.getItemId()) {
             case R.id.nav_first_floor:
-                mapFragment.setFloor(1);
+                mapFragment2.setFloor(1);
                 Toast.makeText(getApplicationContext(), "First floor", Toast.LENGTH_SHORT).show();
                 break;
             case R.id.nav_second_floor:
-                mapFragment.setFloor(2);
+                mapFragment2.setFloor(2);
                 Toast.makeText(getApplicationContext(), "Second floor", Toast.LENGTH_SHORT).show();
                 break;
         }
