@@ -60,6 +60,9 @@ import com.google.android.gms.location.LocationCallback;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationResult;
 import com.google.android.gms.location.LocationServices;
+import com.google.android.gms.maps.CameraUpdate;
+import com.google.android.gms.maps.CameraUpdateFactory;
+import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.tasks.OnSuccessListener;
 
 public class LandingPage  extends AppCompatActivity implements LocationFragment.LocationListener, NavigationView.OnNavigationItemSelectedListener {
@@ -364,6 +367,9 @@ public class LandingPage  extends AppCompatActivity implements LocationFragment.
             @Override
             public void onClick(View view) {
                 Toast.makeText(getApplicationContext(), "My location!", Toast.LENGTH_SHORT).show();
+                LatLng latLng = new LatLng(26, 98.6);
+                CameraUpdate cameraUpdate = CameraUpdateFactory.newLatLngZoom(latLng, 1);
+                mapFragment.googleMap.animateCamera(cameraUpdate);
                 // TODO move map to user's location
             }
         });
@@ -689,6 +695,7 @@ public class LandingPage  extends AppCompatActivity implements LocationFragment.
 
     @Override
     public void updateLocation(Location l) {
+        mCurrentLocation = l;
         Log.i("waytotheclinic", "waytotheclinic location updated: " + l.toString());
 
         double x = (l.getLatitude() - 52.173154) / (52.175751 - 52.173154) * (902 - 176) + 176;

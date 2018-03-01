@@ -40,7 +40,7 @@ public class LocationsProvider {
                 allLabels.addAll(vertexLabelList);
             }
         }
-
+        
         return allLabels;
     }
 }
