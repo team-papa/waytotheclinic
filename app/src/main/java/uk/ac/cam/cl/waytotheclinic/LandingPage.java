@@ -50,9 +50,11 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.PriorityQueue;
+import java.util.Queue;
 import java.util.Set;
 import java.util.TreeSet;
 
@@ -85,6 +87,9 @@ public class LandingPage  extends AppCompatActivity implements LocationFragment.
     private final float[] mMagnetometerReading = new float[3];
     private final float[] mRotationMatrix = new float[9];
     private final float[] mOrientationAngles = new float[3];
+    private Float mBearing;
+
+    LinkedList<Float> mBearingQueue;
 
     ConstraintLayout top_green_box;
     CustomAutoCompleteTextView search_box;
@@ -440,6 +445,8 @@ public class LandingPage  extends AppCompatActivity implements LocationFragment.
         mSensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
         mAccelerometer = mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
         mMagnetometer = mSensorManager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD);
+        mBearingQueue = new LinkedList<>();
+        mBearingQueue.offer(new Float(0.0));
     }
 
 
@@ -716,17 +723,9 @@ public class LandingPage  extends AppCompatActivity implements LocationFragment.
         // Floor number is altitude when we have data from WiFi
         // int floor = (int) l.getAltitude();
 
-        updateBearing(l);
-
         MapFragment.Point p = new MapFragment.Point(x, y, 0);
         //mapFragment.setLocation(p);
         mapFragment.setLocation(new MapFragment.Point(26, 98.6, 0));
-    }
-
-    public void updateBearing(Location l) {
-        Float newBearing = l.getBearing();
-        Boolean has = l.hasBearing();
-        Log.d("Bearing", has.toString());
     }
 
     @Override
@@ -759,5 +758,26 @@ public class LandingPage  extends AppCompatActivity implements LocationFragment.
         mSensorManager.getOrientation(mRotationMatrix, mOrientationAngles);
 
         // "mOrientationAngles" now has up-to-date information.
+
+        mBearing = mOrientationAngles[0];
+        Boolean check = hasChangedDirection();
+        Log.d("Angle: ", mBearing.toString());
+        Log.d("Changed: ", check.toString());
+    }
+
+    public boolean hasChangedDirection() {
+        if(mBearingQueue.size() >= 100) {
+            mBearingQueue.poll();
+        }
+        Float oldDirection = mBearingQueue.peekFirst();
+        if(Math.abs(mBearing - oldDirection) > 1) {
+            mBearingQueue.clear();
+            mBearingQueue.offer(mBearing);
+            return true;
+        }
+        else {
+            mBearingQueue.offer(mBearing);
+            return false;
+        }
     }
 }
