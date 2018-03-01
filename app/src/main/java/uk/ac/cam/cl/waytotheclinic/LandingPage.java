@@ -9,6 +9,10 @@ import android.content.SharedPreferences;
 import android.content.res.ColorStateList;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.hardware.Sensor;
+import android.hardware.SensorEvent;
+import android.hardware.SensorEventListener;
+import android.hardware.SensorManager;
 import android.location.Location;
 import android.net.wifi.WifiManager;
 import android.os.Bundle;
@@ -62,7 +66,8 @@ import com.google.android.gms.location.LocationResult;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.tasks.OnSuccessListener;
 
-public class LandingPage  extends AppCompatActivity implements LocationFragment.LocationListener, NavigationView.OnNavigationItemSelectedListener {
+public class LandingPage  extends AppCompatActivity implements LocationFragment.LocationListener, NavigationView.OnNavigationItemSelectedListener,
+        SensorEventListener {
     private final String LOCATION_FRAGMENT_TAG = "location-fragment";
     private final int LOCATION_PERMISSIONS = 1;
 
@@ -71,6 +76,15 @@ public class LandingPage  extends AppCompatActivity implements LocationFragment.
 
     private String[] places = new String[]{"Belgium", "Frodo", "France", "Italy", "Germany", "Spain"};
     private Location mCurrentLocation;
+
+    private SensorManager mSensorManager;
+    private Sensor mAccelerometer;
+    private Sensor mMagnetometer;
+
+    private final float[] mAccelerometerReading = new float[3];
+    private final float[] mMagnetometerReading = new float[3];
+    private final float[] mRotationMatrix = new float[9];
+    private final float[] mOrientationAngles = new float[3];
 
     ConstraintLayout top_green_box;
     CustomAutoCompleteTextView search_box;
@@ -423,6 +437,9 @@ public class LandingPage  extends AppCompatActivity implements LocationFragment.
                     return true;
                 }
         });
+        mSensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
+        mAccelerometer = mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
+        mMagnetometer = mSensorManager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD);
     }
 
 
@@ -520,6 +537,9 @@ public class LandingPage  extends AppCompatActivity implements LocationFragment.
         super.onResume();
         check_box = findViewById(R.id.check_box);
         check_box.setChecked(noStairs);
+
+        mSensorManager.registerListener(this, mAccelerometer, SensorManager.SENSOR_DELAY_NORMAL);
+        mSensorManager.registerListener(this, mMagnetometer, SensorManager.SENSOR_DELAY_NORMAL);
     }
 
     @Override
@@ -696,8 +716,48 @@ public class LandingPage  extends AppCompatActivity implements LocationFragment.
         // Floor number is altitude when we have data from WiFi
         // int floor = (int) l.getAltitude();
 
+        updateBearing(l);
+
         MapFragment.Point p = new MapFragment.Point(x, y, 0);
         //mapFragment.setLocation(p);
         mapFragment.setLocation(new MapFragment.Point(26, 98.6, 0));
+    }
+
+    public void updateBearing(Location l) {
+        Float newBearing = l.getBearing();
+        Boolean has = l.hasBearing();
+        Log.d("Bearing", has.toString());
+    }
+
+    @Override
+    public void onAccuracyChanged(Sensor sensor, int accuracy) {
+        // Do something here if sensor accuracy changes.
+    }
+
+    @Override
+    public void onSensorChanged(SensorEvent event) {
+        if (event.sensor == mAccelerometer) {
+            System.arraycopy(event.values, 0, mAccelerometerReading,
+                    0, mAccelerometerReading.length);
+        }
+        else if (event.sensor == mMagnetometer) {
+            System.arraycopy(event.values, 0, mMagnetometerReading,
+                    0, mMagnetometerReading.length);
+        }
+        updateOrientationAngles();
+    }
+
+    // Compute the three orientation angles based on the most recent readings from
+    // the device's accelerometer and magnetometer.
+    public void updateOrientationAngles() {
+        // Update rotation matrix, which is needed to update orientation angles.
+        mSensorManager.getRotationMatrix(mRotationMatrix, null,
+                mAccelerometerReading, mMagnetometerReading);
+
+        // "mRotationMatrix" now has up-to-date information.
+
+        mSensorManager.getOrientation(mRotationMatrix, mOrientationAngles);
+
+        // "mOrientationAngles" now has up-to-date information.
     }
 }
