@@ -20,6 +20,7 @@ import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapView;
 import com.google.android.gms.maps.MapsInitializer;
 import com.google.android.gms.maps.OnMapReadyCallback;
+import com.google.android.gms.maps.model.CircleOptions;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.Tile;
@@ -151,8 +152,9 @@ public class MapFragment extends Fragment implements OnMapReadyCallback{
     }
 
     public void setLocation(Point loc){
-        Log.d("MapFragment", "location = " + loc.x + " " + loc.y);
+
         locTileProvider.setLocation(loc);
+
         googleMap.addMarker( new MarkerOptions()
                 .title("Current Location")
                 .position( new LatLng( loc.x, loc.y ))
