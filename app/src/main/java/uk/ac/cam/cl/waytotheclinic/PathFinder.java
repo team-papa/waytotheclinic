@@ -124,7 +124,7 @@ public class PathFinder {
                     if (straightLabelList.size() > 0) {
                         for (int i = 0; i < straightLabelList.size(); i++) {
                             String label = straightLabelList.get(i);
-                            if (!label.equals("")) {
+                            if (label != null && !label.equals("")) {
                                 if (i != straightLabelList.size() - 1) {
                                     textDirection += " past the " + label + ",";
                                 } else {

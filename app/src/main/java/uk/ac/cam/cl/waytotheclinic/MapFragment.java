@@ -18,7 +18,10 @@ import android.widget.Button;
 
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapView;
+import com.google.android.gms.maps.MapsInitializer;
 import com.google.android.gms.maps.OnMapReadyCallback;
+import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.Tile;
 import com.google.android.gms.maps.model.TileOverlay;
 import com.google.android.gms.maps.model.TileOverlayOptions;
@@ -52,38 +55,6 @@ public class MapFragment extends Fragment implements OnMapReadyCallback{
 
     private PathTileProvider pathTileProvider;
     private LocTileProvider locTileProvider;
-//    private  location;
-
-    @Nullable
-    @Override
-    public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        View view = inflater.inflate(R.layout.map_view, container, false);
-
-        Bundle args = getArguments();
-        if(args != null)
-            Floor = args.getInt("Floor");
-
-        Thread urlLoader = new Thread(new Runnable() {
-            @Override
-            public void run() {
-                URL url = null;
-                try {
-                    url = new URL("http://cjj39.user.srcf.net/WayToTheClinic/populatedTiles.txt");
-                    Scanner s = new Scanner(new BufferedInputStream(url.openStream()));
-                    String input = s.nextLine();
-                    String[] splitInput = input.split(";");
-                    populatedTiles = Arrays.copyOfRange(splitInput, 0, splitInput.length - 1);
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
-        });
-
-        urlLoader.start();
-
-        return view;
-    }
 
     @Override
     public void onMapReady(GoogleMap googleMap) {
@@ -155,37 +126,50 @@ public class MapFragment extends Fragment implements OnMapReadyCallback{
         mapView.invalidate();
     }
 
+    public void setPath(List<Edge> edgePath, double imgSize){
+        final int edgeZOffset = 2;
+
+        List<Point> result = new ArrayList<>();
+        if(edgePath.size() == 0)
+            return;
+
+        Vertex pre = edgePath.get(0).getInVertex();
+        result.add(getPointFromVertex(pre, edgeZOffset, imgSize));
+        for(Edge edge : edgePath){
+            Vertex post = edge.getOutVertex();
+            result.add(getPointFromVertex(post, edgeZOffset, imgSize));
+        }
+
+        setPath(result);
+    }
+
+    private Point getPointFromVertex(Vertex v, int ZOffset, double imgSize){
+        double x = ((double)v.getX())/imgSize;
+        double y = ((double)v.getY())/imgSize;
+        int floor = v.getZ() + ZOffset;
+        return new Point(x, y, floor);
+    }
+
     public void setLocation(Point loc){
+        Log.d("MapFragment", "location = " + loc.x + " " + loc.y);
         locTileProvider.setLocation(loc);
+        googleMap.addMarker( new MarkerOptions()
+                .title("Current Location")
+                .position( new LatLng( loc.x, loc.y ))
+        );
+        /*googleMap.setOnCameraMoveListener(new GoogleMap.OnCameraMoveListener() {
+            @Override
+            public void onCameraMove() {
+                Log.d("MapFragment", googleMap.getCameraPosition().toString());
+            }
+        });*/
 
         //invalidate cache to cause update
         locOverlay.clearTileCache();
         mapView.invalidate();
     }
 
-//    public static void createPathFromString(Bitmap map, List<Pair> coords){
-//        Canvas canvas = new Canvas(map);
-//        canvas.drawColor(Color.TRANSPARENT);
-//        Paint paint = new Paint();
-//        paint.setARGB(255, 255, 0, 0);
-//        double scaling = 1.868;
-//        for(Pair p : coords){
-////            canvas.drawPoint((int)Math.floor(p.a * scaling), (int)Math.floor(p.b * scaling), paint);
-//            int radius = 2;
-//            int x = (int)Math.floor(p.a * scaling);
-//            int y = (int)Math.floor(p.b * scaling);
-//            canvas.drawCircle(x, y, radius, paint);
-//        }
-//        map.prepareToDraw();
-//    }
-
     //region android boilerplate to get mapView working
-    private static final String MAPVIEW_BUNDLE_KEY = "MapViewBundleKey";
-
-    @Override
-    public void onCreate(Bundle savedInstanceState){
-        super.onCreate(savedInstanceState);
-    }
 
     @Override
     public void onActivityCreated(Bundle savedInstanceState){
@@ -200,6 +184,58 @@ public class MapFragment extends Fragment implements OnMapReadyCallback{
         }
 
         mapView.onCreate(mapViewBundle);
+    }
+
+    private static final String MAPVIEW_BUNDLE_KEY = "MapViewBundleKey";
+    Bundle savedInstanceBundle;
+
+    @Override
+    public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        View inflatedView = inflater.inflate(R.layout.map_view, container, false);
+
+        Bundle args = getArguments();
+        if(args != null)
+            Floor = args.getInt("Floor");
+
+        Thread urlLoader = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                URL url = null;
+                try {
+                    url = new URL("http://cjj39.user.srcf.net/WayToTheClinic/populatedTiles.txt");
+                    Scanner s = new Scanner(new BufferedInputStream(url.openStream()));
+                    String input = s.nextLine();
+                    String[] splitInput = input.split(";");
+                    populatedTiles = Arrays.copyOfRange(splitInput, 0, splitInput.length - 1);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        });
+
+        urlLoader.start();
+
+
+        MapsInitializer.initialize(getActivity());
+        if(mapView == null)
+            mapView = inflatedView.findViewById(R.id.mapView);
+        mapView.onCreate(savedInstanceBundle);
+
+        return inflatedView;
+    }
+
+    @Override
+    public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        if (mapView == null)
+            mapView = getActivity().findViewById(R.id.mapView);
+
+        Bundle mapViewBundle = null;
+        if (savedInstanceState != null) {
+            mapViewBundle = savedInstanceState.getBundle(MAPVIEW_BUNDLE_KEY);
+        }
+        savedInstanceBundle = mapViewBundle;
     }
 
     @Override
@@ -272,7 +308,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback{
 
     //endregion
 
-    public class Point{
+    public static class Point{
         double x;
         double y;
         int floor;

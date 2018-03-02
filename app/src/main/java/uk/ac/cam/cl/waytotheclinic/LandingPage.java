@@ -1,13 +1,16 @@
 package uk.ac.cam.cl.waytotheclinic;
 
+import android.Manifest;
 import android.animation.LayoutTransition;
-import android.app.FragmentManager;
+import android.content.pm.PackageManager;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.res.ColorStateList;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.location.Location;
+import android.net.wifi.WifiManager;
 import android.os.Bundle;
 import android.os.Handler;
 import android.preference.PreferenceManager;
@@ -15,6 +18,10 @@ import android.support.constraint.ConstraintLayout;
 import android.support.constraint.ConstraintSet;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.NavigationView;
+import android.support.v4.app.ActivityCompat;
+import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentManager;
+import android.support.v4.app.FragmentTransaction;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
@@ -24,6 +31,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.*;
 import android.view.inputmethod.InputMethodManager;
+import android.util.Log;
 import android.util.TypedValue;
 import android.widget.AdapterView;
 import android.widget.CheckBox;
@@ -44,11 +52,29 @@ import java.util.PriorityQueue;
 import java.util.Set;
 import java.util.TreeSet;
 
+import android.widget.TextView;
+import android.widget.Toast;
+import android.Manifest;
+import com.google.android.gms.location.FusedLocationProviderClient;
+import com.google.android.gms.location.LocationCallback;
+import com.google.android.gms.location.LocationRequest;
+import com.google.android.gms.location.LocationResult;
+import com.google.android.gms.location.LocationServices;
+import com.google.android.gms.maps.CameraUpdate;
+import com.google.android.gms.maps.CameraUpdateFactory;
+import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.tasks.OnSuccessListener;
 
-public class LandingPage extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener{
+public class LandingPage  extends AppCompatActivity implements LocationFragment.LocationListener, NavigationView.OnNavigationItemSelectedListener {
+    private final String LOCATION_FRAGMENT_TAG = "location-fragment";
+    private final int LOCATION_PERMISSIONS = 1;
 
     // UI Components
     ConstraintLayout main_layout;
+
+    private String[] places = new String[]{"Belgium", "Frodo", "France", "Italy", "Germany", "Spain"};
+    private Location mCurrentLocation;
+
     ConstraintLayout top_green_box;
     CustomAutoCompleteTextView search_box;
     DrawerLayout drawer_layout;
@@ -85,8 +111,7 @@ public class LandingPage extends AppCompatActivity implements NavigationView.OnN
     static Vertex fromClosestVertex;
     static Vertex toClosestVertex;
 
-    final FragmentManager fm = getFragmentManager();
-    final static Bundle mapBundle = new Bundle();
+//    final static Bundle mapBundle = new Bundle();
 
     @Override
     public void onCreate(final Bundle savedInstanceState) {
@@ -100,6 +125,7 @@ public class LandingPage extends AppCompatActivity implements NavigationView.OnN
         drawer_layout = findViewById(R.id.drawer_layout);
         NavigationView nav_view = findViewById(R.id.nav_view);
         menu_button = findViewById(R.id.menu_button);
+
         check_box = findViewById(R.id.check_box);
         check_box_text = findViewById(R.id.check_box_text);
         ae_button = findViewById(R.id.ae_button);
@@ -161,6 +187,17 @@ public class LandingPage extends AppCompatActivity implements NavigationView.OnN
             }
         }
 
+        // Keys used in Hashmap
+        final String[] from = { "name","icon"};
+
+        // Ids of views in listview_layout
+        final int[] to = { R.id.name, R.id.icon};
+
+        LocationFragment locationFragment = new LocationFragment();
+
+        FragmentManager fm = getSupportFragmentManager();
+        fm.beginTransaction().add(locationFragment, LOCATION_FRAGMENT_TAG).commit();
+
         // To make search box drop down align correctly
         search_box.setThreshold(1);
         search_box.setDropDownHeight(dpToPx(150.0F));
@@ -200,7 +237,7 @@ public class LandingPage extends AppCompatActivity implements NavigationView.OnN
                     @Override
                     public void onClick(View view) {
                         Intent intent = new Intent(getBaseContext(), DirectionsPage.class);
-                        fm.putFragment(mapBundle,"map", mapFragment);
+//                        fm.putFragment(mapBundle,"map", mapFragment);
                         startActivity(intent);
                     }
                 });
@@ -243,7 +280,7 @@ public class LandingPage extends AppCompatActivity implements NavigationView.OnN
 
 
         // I really wish I could get rid of this but I need syncState()
-        ActionBarDrawerToggle toggle =  new ActionBarDrawerToggle(
+        ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
                 this,
                 drawer_layout,
                 R.string.navigation_drawer_open,
@@ -330,6 +367,9 @@ public class LandingPage extends AppCompatActivity implements NavigationView.OnN
             @Override
             public void onClick(View view) {
                 Toast.makeText(getApplicationContext(), "My location!", Toast.LENGTH_SHORT).show();
+                LatLng latLng = new LatLng(26, 98.6);
+                CameraUpdate cameraUpdate = CameraUpdateFactory.newLatLngZoom(latLng, 1);
+                mapFragment.googleMap.animateCamera(cameraUpdate);
                 // TODO move map to user's location
             }
         });
@@ -445,6 +485,17 @@ public class LandingPage extends AppCompatActivity implements NavigationView.OnN
         }
     }
 
+    @Override
+    public void onRequestPermissionsResult (int requestCode, String[] permissions,
+                                            int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        
+        Fragment frg = getSupportFragmentManager().findFragmentByTag(LOCATION_FRAGMENT_TAG);
+        final FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
+        ft.attach(frg);
+        ft.detach(frg);
+        ft.commit();
+    }
 
     @Override
     public void onBackPressed() {
@@ -491,12 +542,13 @@ public class LandingPage extends AppCompatActivity implements NavigationView.OnN
 
         // Handle side-menu item-clicks
         switch (item.getItemId()) {
+            //todo fix floors
             case R.id.nav_first_floor:
-                mapFragment.setFloor(1);
+                mapFragment.setFloor(2);
                 Toast.makeText(getApplicationContext(), "First floor", Toast.LENGTH_SHORT).show();
                 break;
             case R.id.nav_second_floor:
-                mapFragment.setFloor(2);
+                mapFragment.setFloor(3);
                 Toast.makeText(getApplicationContext(), "Second floor", Toast.LENGTH_SHORT).show();
                 break;
             case R.id.nav_third_floor:
@@ -621,5 +673,46 @@ public class LandingPage extends AppCompatActivity implements NavigationView.OnN
 
     public int dpToPx(Float value) {
         return (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, value, getResources().getDisplayMetrics());
+    }
+
+    // Methods below here are called by LocationFragment, part of the interface LocationFragment.LocationListener
+
+    @Override
+    public boolean checkPermissions() {
+        return ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED
+            && ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_WIFI_STATE) == PackageManager.PERMISSION_GRANTED;
+    }
+
+    @Override
+    public void requestPermissions() {
+        ActivityCompat.requestPermissions(this,
+            new String[] {Manifest.permission.ACCESS_FINE_LOCATION,
+                          Manifest.permission.ACCESS_WIFI_STATE},
+            LOCATION_PERMISSIONS);
+    }
+
+    @Override
+    public WifiManager getWifiManager() {
+        return (WifiManager) this.getSystemService(Context.WIFI_SERVICE);
+    }
+
+    @Override
+    public void startLocationUpdates(LocationRequest lr, LocationCallback lc) {
+        LocationServices.getFusedLocationProviderClient(this).requestLocationUpdates(lr, lc, null);
+    }
+
+    @Override
+    public void updateLocation(Location l) {
+        mCurrentLocation = l;
+        Log.i("waytotheclinic", "waytotheclinic location updated: " + l.toString());
+
+        double x = (l.getLatitude() - 52.173154) / (52.175751 - 52.173154) * (902 - 176) + 176;
+        double y = (l.getLongitude() - 0.138020) / (0.143265 - 0.138020) * (562 - 362) + 562;
+        // Floor number is altitude when we have data from WiFi
+        // int floor = (int) l.getAltitude();
+
+        MapFragment.Point p = new MapFragment.Point(x, y, 0);
+        //mapFragment.setLocation(p);
+        mapFragment.setLocation(new MapFragment.Point(26, 98.6, 0));
     }
 }
