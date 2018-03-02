@@ -2,6 +2,7 @@ package uk.ac.cam.cl.waytotheclinic;
 
 import android.app.Fragment;
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
@@ -11,6 +12,7 @@ import android.support.annotation.Nullable;
 import android.support.v4.content.ContextCompat;
 import android.util.Log;
 import android.util.SparseArray;
+import android.util.TypedValue;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -21,6 +23,7 @@ import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapView;
 import com.google.android.gms.maps.MapsInitializer;
 import com.google.android.gms.maps.OnMapReadyCallback;
+import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
@@ -120,6 +123,9 @@ public class MapFragment extends Fragment implements OnMapReadyCallback{
         op.title("Current Location");
         op.position(new LatLng(26, 98.6));
         mLocationMarker = googleMap.addMarker(op);
+        Bitmap bMap = BitmapFactory.decodeResource(getResources(), R.drawable.mylocmap);
+        Bitmap bMapScaled = Bitmap.createScaledBitmap(bMap, dpToPx(32.0F), dpToPx(32.0F), true);
+        mLocationMarker.setIcon(BitmapDescriptorFactory.fromBitmap(bMapScaled));
     }
 
     private boolean tilePopulated(int f, int z, int x, int y){
@@ -336,5 +342,9 @@ public class MapFragment extends Fragment implements OnMapReadyCallback{
             y = Y;
             floor = Floor;
         }
+    }
+
+    public int dpToPx(Float value) {
+        return (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, value, getResources().getDisplayMetrics());
     }
 }
