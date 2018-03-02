@@ -170,8 +170,6 @@ public class MapFragment extends Fragment implements OnMapReadyCallback{
 
         Log.d("Convert to Point:", mapLoc.x + " " + mapLoc.y);
 
-        Point closestPoint = mapLoc;
-/*
         // Call getNearestVertex
 
         Context context = getActivity().getApplicationContext();
@@ -192,7 +190,6 @@ public class MapFragment extends Fragment implements OnMapReadyCallback{
         closestPoint.x = closestPoint.x / 960;
         closestPoint.y = closestPoint.y / 960;
 
-*/
         // We now have Point in map coordinates
         Log.d("Closest Point:", closestPoint.x + " " + closestPoint.y);
 
