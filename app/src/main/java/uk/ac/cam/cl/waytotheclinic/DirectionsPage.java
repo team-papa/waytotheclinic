@@ -345,7 +345,7 @@ public class DirectionsPage extends LandingPage {
                 Toast.makeText(getApplicationContext(), "Second floor", Toast.LENGTH_SHORT).show();
                 break;
             case R.id.nav_third_floor:
-                mapFragment.setFloor(3);
+                mapFragment2.setFloor(3);
                 Toast.makeText(getApplicationContext(), "Third floor", Toast.LENGTH_SHORT).show();
                 break;
         }
