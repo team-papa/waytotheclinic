@@ -227,7 +227,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback{
         Double lng = point.x * 360 - 180;
         Double n = Math.PI - 2 * Math.PI * point.y;
         Double lat = (180 / Math.PI * Math.atan(0.5 * (Math.exp(n) - Math.exp(-n))));
-        return new LatLng(lat, lng);
+        return new LatLng(-lat, lng);
     };
 
 
