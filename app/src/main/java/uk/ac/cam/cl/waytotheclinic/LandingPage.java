@@ -110,6 +110,7 @@ public class LandingPage  extends AppCompatActivity implements LocationFragment.
     // Source and destination vertices
     static Vertex fromClosestVertex;
     static Vertex toClosestVertex;
+    static String searchString;
 
 //    final static Bundle mapBundle = new Bundle();
 
@@ -217,9 +218,11 @@ public class LandingPage  extends AppCompatActivity implements LocationFragment.
                 addRecentSearch(hm, placesList, history);
                 search_box.setAdapter(new SimpleAdapter(getBaseContext(), placesList, R.layout.autocomplete_layout, from, to));
 
+                searchString = hm.get("name");
+
                 // RICHIE: from label to vertex
-                toClosestVertex = fromLabelToVertex(hm.get("name"));
-                search_box.setText(toClosestVertex.toString());
+                toClosestVertex = fromLabelToVertex(searchString);
+                search_box.setText(searchString);
 
                 // TODO add action that moves map to selected place hm.get("name") (which is now closestVertex)
 
@@ -232,7 +235,7 @@ public class LandingPage  extends AppCompatActivity implements LocationFragment.
                 constraintSet.connect(R.id.my_location_button, ConstraintSet.BOTTOM, R.id.bottom_white_box, ConstraintSet.TOP, dpToPx(16.0F));
                 constraintSet.applyTo(main_layout);
 
-                search_term.setText(toClosestVertex.toString());
+                search_term.setText(searchString);
                 directions.setOnClickListener(new View.OnClickListener(){
                     @Override
                     public void onClick(View view) {
@@ -542,13 +545,13 @@ public class LandingPage  extends AppCompatActivity implements LocationFragment.
 
         // Handle side-menu item-clicks
         switch (item.getItemId()) {
-            //todo fix floors
+            // TODO fix floors
             case R.id.nav_first_floor:
-                mapFragment.setFloor(2);
+                mapFragment.setFloor(1);
                 Toast.makeText(getApplicationContext(), "First floor", Toast.LENGTH_SHORT).show();
                 break;
             case R.id.nav_second_floor:
-                mapFragment.setFloor(3);
+                mapFragment.setFloor(2);
                 Toast.makeText(getApplicationContext(), "Second floor", Toast.LENGTH_SHORT).show();
                 break;
             case R.id.nav_third_floor:
@@ -690,6 +693,7 @@ public class LandingPage  extends AppCompatActivity implements LocationFragment.
                           Manifest.permission.ACCESS_WIFI_STATE},
             LOCATION_PERMISSIONS);
     }
+
 
     @Override
     public WifiManager getWifiManager() {

@@ -126,7 +126,7 @@ public class DirectionsPage extends LandingPage {
         });
 
         // Make destination box show the search term
-        to_box.setText(toClosestVertex.toString());
+        to_box.setText(searchString);
 
         // Enhance the places list of the "from" search box with the user's location
         List<Map<String, String>> enhancedPlacesList = new ArrayList<>(placesList);
@@ -186,7 +186,7 @@ public class DirectionsPage extends LandingPage {
 
                 // RICHIE: from label to vertex
                 fromClosestVertex = fromLabelToVertex(hm.get("name"));
-                from_box.setText(fromClosestVertex.toString());
+                from_box.setText(hm.get("name"));
 
                 handlePathBuilding();
 
@@ -206,7 +206,7 @@ public class DirectionsPage extends LandingPage {
 
                 // RICHIE: from label to vertex
                 toClosestVertex = fromLabelToVertex(hm.get("name"));
-                to_box.setText(toClosestVertex.toString());
+                to_box.setText(hm.get("name"));
 
                 handlePathBuilding();
             }
@@ -337,11 +337,11 @@ public class DirectionsPage extends LandingPage {
         // Handle side-menu item-clicks
         switch (item.getItemId()) {
             case R.id.nav_first_floor:
-                mapFragment2.setFloor(2);
+                mapFragment2.setFloor(1);
                 Toast.makeText(getApplicationContext(), "First floor", Toast.LENGTH_SHORT).show();
                 break;
             case R.id.nav_second_floor:
-                mapFragment2.setFloor(3);
+                mapFragment2.setFloor(2);
                 Toast.makeText(getApplicationContext(), "Second floor", Toast.LENGTH_SHORT).show();
                 break;
             case R.id.nav_third_floor:
