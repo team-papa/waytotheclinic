@@ -1,11 +1,13 @@
 package uk.ac.cam.cl.waytotheclinic;
 
 import android.app.Fragment;
+import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
+import android.graphics.Point;
 import android.graphics.drawable.BitmapDrawable;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
@@ -46,6 +48,8 @@ import java.net.URL;
 import java.nio.Buffer;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Scanner;
@@ -68,7 +72,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback{
     private Marker mLocationMarker;
 
     @Override
-    public void onMapReady(GoogleMap googleMap) {
+    public void onMapReady(final GoogleMap googleMap) {
         this.googleMap = googleMap;
         googleMap.setMapType(GoogleMap.MAP_TYPE_NONE);
 
@@ -138,32 +142,93 @@ public class MapFragment extends Fragment implements OnMapReadyCallback{
 
         this.setFloor(2);
 
+        MarkerOptions op = new MarkerOptions();
+        op.title("Current Location");
+        op.position(new LatLng(26, 98.6));
+        Bitmap bMap = BitmapFactory.decodeResource(getResources(), R.drawable.mylocmap);
+        Bitmap bMapScaled = Bitmap.createScaledBitmap(bMap, dpToPx(32.0F), dpToPx(32.0F), true);
+        op.icon(BitmapDescriptorFactory.fromBitmap(bMapScaled));
+        mLocationMarker = googleMap.addMarker(op);
+
+
+        // When the map is pressed, a position in longitude/latitude for the click is returned.
+
         googleMap.setOnMapLongClickListener(new GoogleMap.OnMapLongClickListener() {
 
             @Override
             public void onMapLongClick(LatLng latLng) {
-                Double lat = latLng.latitude;
-                Double lon = latLng.longitude;
-                Log.d("Click: ", lat + " " + lon);
-                Point pt = new Point(lat,lon,0);
-                setLocation(pt);
-                /*MarkerOptions markerOptions = new MarkerOptions();
-                markerOptions.title("latitude" + latitude + ":" + longitude);
-                markerOptions.position(latLng);
-                googleMap.clear();
-                googleMap.addMarker(markerOptions);
-                googleMap.animateCamera(CameraUpdateFactory.newLatLng(latLng));*/
+
+                Log.d("clicked values:", latLng.latitude + ":" + latLng.longitude);
+                setLocation(latLng);
             }
         });
 
-        MarkerOptions op = new MarkerOptions();
-        op.title("Current Location");
-        op.position(new LatLng(26, 98.6));
-        mLocationMarker = googleMap.addMarker(op);
-        Bitmap bMap = BitmapFactory.decodeResource(getResources(), R.drawable.mylocmap);
-        Bitmap bMapScaled = Bitmap.createScaledBitmap(bMap, dpToPx(32.0F), dpToPx(32.0F), true);
-        mLocationMarker.setIcon(BitmapDescriptorFactory.fromBitmap(bMapScaled));
     }
+
+    public void setLocation(LatLng latLng){
+
+        locTileProvider.setLocation(new Point(latLng.latitude,latLng.longitude,0));
+
+        // We currently have a LatLng in lat/long coordinates
+        Log.d("Initial LatLng:", latLng.latitude + " " + latLng.longitude);
+
+        // We must convert this to a Point in map coordinates [0,1]
+
+        Point mapLoc = fromLatLngToPoint(latLng);
+
+        Log.d("Convert to Point:", mapLoc.x + " " + mapLoc.y);
+
+        // Call getNearestVertex
+
+        Context context = getActivity().getApplicationContext();
+        HashSet<Vertex> vertexSet = (HashSet<Vertex>) LocationsProvider.generateVertices(context);
+        HashMap<Vertex,Vertex> vertexMap = new HashMap<>();
+
+        for(Vertex vertex : vertexSet) {
+            vertexMap.put(vertex,vertex);
+        }
+
+        Vertex closest = LandingPage.getNearestVertex(mapLoc.x,mapLoc.y,0,960,vertexMap);
+
+        Point closestPoint = getPointFromVertex(closest,0,1);
+
+
+        // Divide by 960 to convert from vertex to map coordinates
+
+        closestPoint.x = closestPoint.x / 960;
+        closestPoint.y = closestPoint.y / 960;
+
+
+        // We now have Point in map coordinates
+        Log.d("Closest Point:", closestPoint.x + " " + closestPoint.y);
+
+        // Must convert to LatLng in Latitude/Longitude coordinates
+
+        LatLng closestLatLng = fromPointToLatLng(closestPoint);
+
+        Log.d("Convert to LatLng:", closestLatLng.latitude + " " + closestLatLng.longitude);
+
+        mLocationMarker.setPosition(closestLatLng);
+
+
+        //invalidate cache to cause update
+        locOverlay.clearTileCache();
+        mapView.invalidate();
+    }
+
+    public Point fromLatLngToPoint(LatLng latLng) {
+        Double x = (latLng.longitude + 180) / 360;
+        Double y = ((1 - Math.log(Math.tan(latLng.latitude * Math.PI / 180) + 1 / Math.cos(latLng.latitude * Math.PI / 180)) / Math.PI) / 2 * Math.pow(2, 0));
+        return new Point(x, y, 0);
+    };
+
+    public LatLng fromPointToLatLng(Point point){
+        Double lng = point.x / 360 - 180;
+        Double n = Math.PI - 2 * Math.PI * point.y;
+        Double lat = (180 / Math.PI * Math.atan(0.5 * (Math.exp(n) - Math.exp(-n))));
+        return new LatLng(lat, lng);
+    };
+
 
     private boolean tilePopulated(int f, int z, int x, int y){
         String check = String.format("(%d,%d,%d,%d)", f,z,x,y);
@@ -220,15 +285,6 @@ public class MapFragment extends Fragment implements OnMapReadyCallback{
         return new Point(x, y, floor);
     }
 
-    public void setLocation(Point loc){
-
-        locTileProvider.setLocation(loc);
-        mLocationMarker.setPosition(new LatLng( loc.x, loc.y ));
-
-        //invalidate cache to cause update
-        locOverlay.clearTileCache();
-        mapView.invalidate();
-    }
 
     //region android boilerplate to get mapView working
 

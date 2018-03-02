@@ -255,7 +255,7 @@ public class DirectionsPage extends LandingPage {
                 Toast.makeText(getApplicationContext(), "My location!", Toast.LENGTH_SHORT).show();
                 LatLng latLng = new LatLng(26, 98.6);
                 CameraUpdate cameraUpdate = CameraUpdateFactory.newLatLngZoom(latLng, 1);
-                mapFragment.googleMap.animateCamera(cameraUpdate);
+                mapFragment2.googleMap.animateCamera(cameraUpdate);
             }
         });
     }
