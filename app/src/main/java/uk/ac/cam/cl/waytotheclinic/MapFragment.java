@@ -218,12 +218,13 @@ public class MapFragment extends Fragment implements OnMapReadyCallback{
 
     public Point fromLatLngToPoint(LatLng latLng) {
         Double x = (latLng.longitude + 180) / 360;
-        Double y = ((1 - Math.log(Math.tan(latLng.latitude * Math.PI / 180) + 1 / Math.cos(latLng.latitude * Math.PI / 180)) / Math.PI) / 2 * Math.pow(2, 0));
+        Double y = (latLng.latitude + 180) / 360;
+        //Double y = ((1 - Math.log(Math.tan(latLng.latitude * Math.PI / 180) + 1 / Math.cos(latLng.latitude * Math.PI / 180)) / Math.PI) / 2 * Math.pow(2, 0));
         return new Point(x, y, 0);
     };
 
     public LatLng fromPointToLatLng(Point point){
-        Double lng = point.x / 360 - 180;
+        Double lng = point.x * 360 - 180;
         Double n = Math.PI - 2 * Math.PI * point.y;
         Double lat = (180 / Math.PI * Math.atan(0.5 * (Math.exp(n) - Math.exp(-n))));
         return new LatLng(lat, lng);
