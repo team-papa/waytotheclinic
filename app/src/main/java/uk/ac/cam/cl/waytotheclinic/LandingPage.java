@@ -373,7 +373,6 @@ public class LandingPage  extends AppCompatActivity implements LocationFragment.
                 LatLng latLng = new LatLng(26, 98.6);
                 CameraUpdate cameraUpdate = CameraUpdateFactory.newLatLngZoom(latLng, 1);
                 mapFragment.googleMap.animateCamera(cameraUpdate);
-                // TODO move map to user's location
             }
         });
 
@@ -707,7 +706,7 @@ public class LandingPage  extends AppCompatActivity implements LocationFragment.
 
     @Override
     public void updateLocation(Location l) {
-        mCurrentLocation = l;
+        //mCurrentLocation = l;
         Log.i("waytotheclinic", "waytotheclinic location updated: " + l.toString());
 
         double x = (l.getLatitude() - 52.173154) / (52.175751 - 52.173154) * (902 - 176) + 176;
@@ -717,6 +716,10 @@ public class LandingPage  extends AppCompatActivity implements LocationFragment.
 
         MapFragment.Point p = new MapFragment.Point(x, y, 0);
         //mapFragment.setLocation(p);
-        mapFragment.setLocation(new MapFragment.Point(26, 98.6, 0));
+        //mapFragment.setLocation(new MapFragment.Point(26, 98.6, 0));
+    }
+
+    public void setCurrentLocation(Location l) {
+        mCurrentLocation = l;
     }
 }
