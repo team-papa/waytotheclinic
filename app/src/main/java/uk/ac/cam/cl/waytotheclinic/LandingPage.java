@@ -65,6 +65,8 @@ import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.tasks.OnSuccessListener;
 
+import static uk.ac.cam.cl.waytotheclinic.VertexComparator.ManhattanDistance2D;
+
 public class LandingPage  extends AppCompatActivity implements LocationFragment.LocationListener, NavigationView.OnNavigationItemSelectedListener {
     private final String LOCATION_FRAGMENT_TAG = "location-fragment";
     private final int LOCATION_PERMISSIONS = 1;
@@ -373,7 +375,6 @@ public class LandingPage  extends AppCompatActivity implements LocationFragment.
                 LatLng latLng = new LatLng(26, 98.6);
                 CameraUpdate cameraUpdate = CameraUpdateFactory.newLatLngZoom(latLng, 1);
                 mapFragment.googleMap.animateCamera(cameraUpdate);
-                // TODO move map to user's location
             }
         });
 
@@ -694,20 +695,22 @@ public class LandingPage  extends AppCompatActivity implements LocationFragment.
             LOCATION_PERMISSIONS);
     }
 
+    // TODO for Alex: fix these before pushing to develop
 
     @Override
     public WifiManager getWifiManager() {
-        return (WifiManager) this.getSystemService(Context.WIFI_SERVICE);
+//        return (WifiManager) this.getSystemService(Context.WIFI_SERVICE);
+        return null;
     }
 
     @Override
     public void startLocationUpdates(LocationRequest lr, LocationCallback lc) {
-        LocationServices.getFusedLocationProviderClient(this).requestLocationUpdates(lr, lc, null);
+//        LocationServices.getFusedLocationProviderClient(this).requestLocationUpdates(lr, lc, null);
     }
 
     @Override
     public void updateLocation(Location l) {
-        mCurrentLocation = l;
+        //mCurrentLocation = l;
         Log.i("waytotheclinic", "waytotheclinic location updated: " + l.toString());
 
         double x = (l.getLatitude() - 52.173154) / (52.175751 - 52.173154) * (902 - 176) + 176;
@@ -717,6 +720,35 @@ public class LandingPage  extends AppCompatActivity implements LocationFragment.
 
         MapFragment.Point p = new MapFragment.Point(x, y, 0);
         //mapFragment.setLocation(p);
-        mapFragment.setLocation(new MapFragment.Point(26, 98.6, 0));
+        //mapFragment.setLocation(new MapFragment.Point(26, 98.6, 0));
+    }
+
+    public void setCurrentLocation(Location l) {
+        mCurrentLocation = l;
+    }
+
+    // floor is -1 indexed
+    // xd and yd are in [0,1]
+    public static Vertex getNearestVertex(double xd, double yd, int floor,
+                                          double squareSideLength, Map<Vertex, Vertex> vMap) {
+        int nearestX = (int) (xd * squareSideLength);
+        int nearestY = (int) (yd * squareSideLength);
+
+        Vertex touched = new Vertex(nearestX, nearestY, floor);
+
+        Vertex candidate = null;
+        int bestDistance = Integer.MAX_VALUE;
+        for (Vertex v : vMap.keySet()) {
+            // Only consider it if they are on the same floor
+            if (v.getZ() != touched.getZ()) {
+                continue;
+            }
+
+            if (ManhattanDistance2D(touched, v) < bestDistance) {
+                candidate = v;
+                bestDistance = ManhattanDistance2D(touched, v);
+            }
+        }
+        return candidate;
     }
 }

@@ -16,11 +16,13 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 
+import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapView;
 import com.google.android.gms.maps.MapsInitializer;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.Tile;
 import com.google.android.gms.maps.model.TileOverlay;
@@ -55,6 +57,8 @@ public class MapFragment extends Fragment implements OnMapReadyCallback{
 
     private PathTileProvider pathTileProvider;
     private LocTileProvider locTileProvider;
+
+    private Marker mLocationMarker;
 
     @Override
     public void onMapReady(GoogleMap googleMap) {
@@ -93,6 +97,29 @@ public class MapFragment extends Fragment implements OnMapReadyCallback{
         //endregion
 
         this.setFloor(2);
+
+        googleMap.setOnMapLongClickListener(new GoogleMap.OnMapLongClickListener() {
+
+            @Override
+            public void onMapLongClick(LatLng latLng) {
+                Double lat = latLng.latitude;
+                Double lon = latLng.longitude;
+                Log.d("Click: ", lat + " " + lon);
+                Point pt = new Point(lat,lon,0);
+                setLocation(pt);
+                /*MarkerOptions markerOptions = new MarkerOptions();
+                markerOptions.title("latitude" + latitude + ":" + longitude);
+                markerOptions.position(latLng);
+                googleMap.clear();
+                googleMap.addMarker(markerOptions);
+                googleMap.animateCamera(CameraUpdateFactory.newLatLng(latLng));*/
+            }
+        });
+
+        MarkerOptions op = new MarkerOptions();
+        op.title("Current Location");
+        op.position(new LatLng(26, 98.6));
+        mLocationMarker = googleMap.addMarker(op);
     }
 
     private boolean tilePopulated(int f, int z, int x, int y){
@@ -151,18 +178,9 @@ public class MapFragment extends Fragment implements OnMapReadyCallback{
     }
 
     public void setLocation(Point loc){
-        Log.d("MapFragment", "location = " + loc.x + " " + loc.y);
+
         locTileProvider.setLocation(loc);
-        googleMap.addMarker( new MarkerOptions()
-                .title("Current Location")
-                .position( new LatLng( loc.x, loc.y ))
-        );
-        /*googleMap.setOnCameraMoveListener(new GoogleMap.OnCameraMoveListener() {
-            @Override
-            public void onCameraMove() {
-                Log.d("MapFragment", googleMap.getCameraPosition().toString());
-            }
-        });*/
+        mLocationMarker.setPosition(new LatLng( loc.x, loc.y ));
 
         //invalidate cache to cause update
         locOverlay.clearTileCache();

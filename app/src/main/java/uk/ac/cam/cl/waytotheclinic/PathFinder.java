@@ -89,6 +89,15 @@ public class PathFinder {
 
             if (e.getInVertex().getZ() != e.getOutVertex().getZ()) {
                 if (e.isStairs()) {
+                    // Only add the last direction of where to take the stairs in this stairwell
+                    // This turns this                         into this
+                    // Take the stairs to level 1             Take the stairs to level 3
+                    // Take the stairs to level 2
+                    // Take the stairs to level 3
+                    if (directions.get(directions.size() - 1)
+                            .getInstructionText().contains("Take the stairs")) {
+                        directions.remove(directions.size() - 1);
+                    }
                     directions.add(new Instruction(R.drawable.stairs,
                             "Take the stairs to level " + (e.getOutVertex().getZ() + 1)));
                 } else {
@@ -101,15 +110,15 @@ public class PathFinder {
                 assert (newAngle < 360 && newAngle >= 0);
                 assert (orientAngle < 360 && orientAngle >= 0);
 
-                double diffAngle = orientAngle - newAngle;
+                double diffAngle = (orientAngle - newAngle + 360) % 360;
 
                 TurnType turnType;
 
                 if (Math.abs(diffAngle) == 180) {
                     turnType = TurnType.UTURN;
-                } else if (diffAngle < 0) {
+                } else if (diffAngle > 180 && diffAngle < 360 && diffAngle == 270 ) {
                     turnType = TurnType.LEFT;
-                } else if (diffAngle > 0) {
+                } else if (diffAngle > 0 && diffAngle < 180 && diffAngle == 90) {
                     turnType = TurnType.RIGHT;
                 } else {
                     turnType = TurnType.STRAIGHT;

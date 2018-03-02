@@ -26,6 +26,13 @@ public class VertexComparator implements Comparator<Vertex> {
         return dx + dy + best_dz;
     }
 
+    public static int ManhattanDistance2D(Vertex v, Vertex w) {
+        int dx = Math.abs(v.getX() - w.getX());
+        int dy = Math.abs(v.getY() - w.getY());
+
+        return dx + dy;
+    }
+
     public int compare(Vertex a, Vertex b) {
         return (manhattanDistance(a, end) - manhattanDistance(b, end));
     }
