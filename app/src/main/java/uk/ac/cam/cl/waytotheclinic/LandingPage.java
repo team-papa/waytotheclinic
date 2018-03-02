@@ -695,15 +695,16 @@ public class LandingPage  extends AppCompatActivity implements LocationFragment.
             LOCATION_PERMISSIONS);
     }
 
+    // TODO for Alex: fix these before pushing to develop
 
     @Override
     public WifiManager getWifiManager() {
-        return (WifiManager) this.getSystemService(Context.WIFI_SERVICE);
+//        return (WifiManager) this.getSystemService(Context.WIFI_SERVICE);
     }
 
     @Override
     public void startLocationUpdates(LocationRequest lr, LocationCallback lc) {
-        LocationServices.getFusedLocationProviderClient(this).requestLocationUpdates(lr, lc, null);
+//        LocationServices.getFusedLocationProviderClient(this).requestLocationUpdates(lr, lc, null);
     }
 
     @Override
