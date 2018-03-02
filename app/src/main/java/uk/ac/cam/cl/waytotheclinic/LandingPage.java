@@ -700,6 +700,7 @@ public class LandingPage  extends AppCompatActivity implements LocationFragment.
     @Override
     public WifiManager getWifiManager() {
 //        return (WifiManager) this.getSystemService(Context.WIFI_SERVICE);
+        return null;
     }
 
     @Override
