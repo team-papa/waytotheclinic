@@ -9,6 +9,7 @@ import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Point;
 import android.graphics.drawable.BitmapDrawable;
+import android.location.Location;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.content.ContextCompat;
@@ -190,6 +191,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback{
         closestPoint.x = closestPoint.x / 960;
         closestPoint.y = closestPoint.y / 960;
 
+
         // We now have Point in map coordinates
         Log.d("Closest Point:", closestPoint.x + " " + closestPoint.y);
 
@@ -198,7 +200,6 @@ public class MapFragment extends Fragment implements OnMapReadyCallback{
         LatLng closestLatLng = fromPointToLatLng(closestPoint);
 
         Log.d("Convert to LatLng:", closestLatLng.latitude + " " + closestLatLng.longitude);
-
 
         if (mLocationMarker == null) {
             MarkerOptions op = new MarkerOptions();
@@ -212,7 +213,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback{
             mLocationMarker.setPosition(closestLatLng);
         }
 
-
+        LandingPage.setCurrentLocation(new Point(closestLatLng.latitude,closestLatLng.longitude,1));
 
         //invalidate cache to cause update
         locOverlay.clearTileCache();
@@ -221,16 +222,14 @@ public class MapFragment extends Fragment implements OnMapReadyCallback{
 
     public Point fromLatLngToPoint(LatLng latLng) {
         Double x = (latLng.longitude + 180) / 360;
-        Double y = (latLng.latitude + 180) / 360;
-        //Double y = ((1 - Math.log(Math.tan(latLng.latitude * Math.PI / 180) + 1 / Math.cos(latLng.latitude * Math.PI / 180)) / Math.PI) / 2 * Math.pow(2, 0));
+        Double y = ((1 - Math.log(Math.tan(latLng.latitude * Math.PI / 180) + 1 / Math.cos(latLng.latitude * Math.PI / 180)) / Math.PI) / 2);
         return new Point(x, y, 0);
     };
 
     public LatLng fromPointToLatLng(Point point){
         Double lng = point.x * 360 - 180;
-        Double lat = point.y * 360 - 180;
-        //Double n = Math.PI - 2 * Math.PI * point.y;
-        //Double lat = (180 / Math.PI * Math.atan(0.5 * (Math.exp(n) - Math.exp(-n))));
+        Double n = Math.PI - 2 * Math.PI * point.y;
+        Double lat = (180 / Math.PI * Math.atan(0.5 * (Math.exp(n) - Math.exp(-n))));
         return new LatLng(lat, lng);
     };
 

@@ -75,7 +75,7 @@ public class LandingPage  extends AppCompatActivity implements LocationFragment.
     ConstraintLayout main_layout;
 
     private String[] places = new String[]{"Belgium", "Frodo", "France", "Italy", "Germany", "Spain"};
-    private Location mCurrentLocation;
+    public static MapFragment.Point mCurrentLocation;
 
     ConstraintLayout top_green_box;
     CustomAutoCompleteTextView search_box;
@@ -363,6 +363,7 @@ public class LandingPage  extends AppCompatActivity implements LocationFragment.
             }
         });
 
+        mCurrentLocation = new MapFragment.Point(26, 98.6,1);
 
         // Make "my location" button responsive
         Bitmap bMap = BitmapFactory.decodeResource(getResources(), R.drawable.myloc);
@@ -372,7 +373,7 @@ public class LandingPage  extends AppCompatActivity implements LocationFragment.
             @Override
             public void onClick(View view) {
                 Toast.makeText(getApplicationContext(), "My location!", Toast.LENGTH_SHORT).show();
-                LatLng latLng = new LatLng(26, 98.6);
+                LatLng latLng = new LatLng(mCurrentLocation.x, mCurrentLocation.y);
                 CameraUpdate cameraUpdate = CameraUpdateFactory.newLatLngZoom(latLng, 1);
                 mapFragment.googleMap.animateCamera(cameraUpdate);
             }
@@ -723,8 +724,8 @@ public class LandingPage  extends AppCompatActivity implements LocationFragment.
         //mapFragment.setLocation(new MapFragment.Point(26, 98.6, 0));
     }
 
-    public void setCurrentLocation(Location l) {
-        mCurrentLocation = l;
+    public static void setCurrentLocation(MapFragment.Point p) {
+        mCurrentLocation = p;
     }
 
     // floor is -1 indexed
