@@ -142,14 +142,6 @@ public class MapFragment extends Fragment implements OnMapReadyCallback{
 
         this.setFloor(2);
 
-        MarkerOptions op = new MarkerOptions();
-        op.title("Current Location");
-        op.position(new LatLng(26, 98.6));
-        Bitmap bMap = BitmapFactory.decodeResource(getResources(), R.drawable.mylocmap);
-        Bitmap bMapScaled = Bitmap.createScaledBitmap(bMap, dpToPx(32.0F), dpToPx(32.0F), true);
-        op.icon(BitmapDescriptorFactory.fromBitmap(bMapScaled));
-        mLocationMarker = googleMap.addMarker(op);
-
 
         // When the map is pressed, a position in longitude/latitude for the click is returned.
 
@@ -178,6 +170,8 @@ public class MapFragment extends Fragment implements OnMapReadyCallback{
 
         Log.d("Convert to Point:", mapLoc.x + " " + mapLoc.y);
 
+        Point closestPoint = mapLoc;
+/*
         // Call getNearestVertex
 
         Context context = getActivity().getApplicationContext();
@@ -198,7 +192,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback{
         closestPoint.x = closestPoint.x / 960;
         closestPoint.y = closestPoint.y / 960;
 
-
+*/
         // We now have Point in map coordinates
         Log.d("Closest Point:", closestPoint.x + " " + closestPoint.y);
 
@@ -208,7 +202,19 @@ public class MapFragment extends Fragment implements OnMapReadyCallback{
 
         Log.d("Convert to LatLng:", closestLatLng.latitude + " " + closestLatLng.longitude);
 
-        mLocationMarker.setPosition(closestLatLng);
+
+        if (mLocationMarker == null) {
+            MarkerOptions op = new MarkerOptions();
+            op.title("Current Location");
+            op.position(closestLatLng);
+            Bitmap bMap = BitmapFactory.decodeResource(getResources(), R.drawable.mylocmap);
+            Bitmap bMapScaled = Bitmap.createScaledBitmap(bMap, dpToPx(32.0F), dpToPx(32.0F), true);
+            op.icon(BitmapDescriptorFactory.fromBitmap(bMapScaled));
+            mLocationMarker = googleMap.addMarker(op);
+        } else {
+            mLocationMarker.setPosition(closestLatLng);
+        }
+
 
 
         //invalidate cache to cause update
@@ -225,9 +231,10 @@ public class MapFragment extends Fragment implements OnMapReadyCallback{
 
     public LatLng fromPointToLatLng(Point point){
         Double lng = point.x * 360 - 180;
-        Double n = Math.PI - 2 * Math.PI * point.y;
-        Double lat = (180 / Math.PI * Math.atan(0.5 * (Math.exp(n) - Math.exp(-n))));
-        return new LatLng(-lat, lng);
+        Double lat = point.y * 360 - 180;
+        //Double n = Math.PI - 2 * Math.PI * point.y;
+        //Double lat = (180 / Math.PI * Math.atan(0.5 * (Math.exp(n) - Math.exp(-n))));
+        return new LatLng(lat, lng);
     };
 
 
