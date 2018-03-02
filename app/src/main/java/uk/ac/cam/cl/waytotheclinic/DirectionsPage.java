@@ -318,7 +318,7 @@ public class DirectionsPage extends LandingPage {
             // Get path in terms of edges and vertices
             PathFinder pf = new PathFinder();
             List<Edge> path = pf.getPath(fromClosestVertex, toClosestVertex, noStairs);
-            List<Instruction> textBasedDirections = pf.getTextDirections(path);
+            List<Instruction> textBasedDirections = pf.getTextDirections(path).first;
             TextInstructionsAdapter instrAdapter = new TextInstructionsAdapter(
                     getApplicationContext(),
                     R.layout.instruction_layout,

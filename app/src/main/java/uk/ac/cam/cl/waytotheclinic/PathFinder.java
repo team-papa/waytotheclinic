@@ -1,5 +1,7 @@
 package uk.ac.cam.cl.waytotheclinic;
 
+import android.util.Pair;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -76,8 +78,9 @@ public class PathFinder {
         return new ArrayList<>();
     }
 
-    public static List<Instruction> getTextDirections(List<Edge> path) {
+    public static Pair<List<Instruction>, List<Edge>> getTextDirections(List<Edge> path) {
         List<Instruction> directions = new ArrayList<>();
+        List<Edge> whichEdge = new ArrayList<>();
 
         double orientAngle = path != null && path.size() > 0 ? path.get(0).getAngle() : 0;
 
@@ -97,12 +100,15 @@ public class PathFinder {
                     if (directions.get(directions.size() - 1)
                             .getInstructionText().contains("Take the stairs")) {
                         directions.remove(directions.size() - 1);
+                        whichEdge.remove(whichEdge.size() - 1);
                     }
                     directions.add(new Instruction(R.drawable.stairs,
                             "Take the stairs to level " + (e.getOutVertex().getZ() + 1)));
+                    whichEdge.add(e);
                 } else {
                     directions.add(new Instruction(R.drawable.lift,
                             "Take the lift to level " + (e.getOutVertex().getZ() + 1)));
+                    whichEdge.add(e);
                 }
             } else {
 
@@ -146,6 +152,7 @@ public class PathFinder {
                         textDirection = textDirection.replaceAll(",$", "");
 
                         directions.add(new Instruction(R.drawable.straight, textDirection));
+                        whichEdge.add(e);
 
                         straightLabelList.clear();
                         assert (straightLabelList.size() == 0);
@@ -175,6 +182,7 @@ public class PathFinder {
                     }
 
                     directions.add(new Instruction(icon, textDirection));
+                    whichEdge.add(e);
 
                     textDirection = "";
                 } else {
@@ -186,11 +194,13 @@ public class PathFinder {
                 // point towards new direction
                 orientAngle = newAngle;
             }
+
         }
 
         directions.add(new Instruction(R.drawable.destination, "You have arrived at your destination!"));
 
-        return directions;
+
+        return new Pair<>(directions, whichEdge);
     }
 
 
