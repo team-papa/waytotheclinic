@@ -73,7 +73,7 @@ public class PathFinder {
             }
         }
         System.err.println("Returning null, OUCH");
-        return null;
+        return new ArrayList<>();
     }
 
     public static List<Instruction> getTextDirections(List<Edge> path) {

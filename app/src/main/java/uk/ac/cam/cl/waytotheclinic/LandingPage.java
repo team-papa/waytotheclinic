@@ -499,6 +499,10 @@ public class LandingPage extends AppCompatActivity implements NavigationView.OnN
                 mapFragment.setFloor(2);
                 Toast.makeText(getApplicationContext(), "Second floor", Toast.LENGTH_SHORT).show();
                 break;
+            case R.id.nav_third_floor:
+                mapFragment.setFloor(3);
+                Toast.makeText(getApplicationContext(), "Third floor", Toast.LENGTH_SHORT).show();
+                break;
         }
 
         drawer_layout.closeDrawer(GravityCompat.START);
@@ -552,6 +556,10 @@ public class LandingPage extends AppCompatActivity implements NavigationView.OnN
     public Vertex fromLabelToVertex (String searchTerm) {
         // TODO make myLocation to always get updated to the user's current location
         Vertex myLocation = new Vertex(100, 200, 3);
+
+        if(searchTerm.equals("My location")) {
+            return myLocation;
+        }
 
         HashMap<Vertex, String> bestVertices = new HashMap<>();
         int bestLCS = 1; // set best LCS to 1, so we ignore vertices that have 0 match

@@ -204,6 +204,21 @@
         app:layout_constraintVertical_bias="1.0" />
 
 
+    <android.support.design.widget.FloatingActionButton
+        android:id="@+id/my_location_button_dir"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        android:layout_marginBottom="38dp"
+        android:layout_marginEnd="8dp"
+        android:clickable="true"
+        android:scaleType="center"
+        android:tint="@color/colorDarkGrey"
+        app:backgroundTint="@color/colorDirtyWhite"
+        app:layout_constraintBottom_toBottomOf="@+id/map_fragment2"
+        app:layout_constraintEnd_toEndOf="@+id/instructions"
+        app:srcCompat="@drawable/myloc" />
+
+
     <android.support.constraint.ConstraintLayout
         android:id="@+id/instructions"
         android:layout_width="match_parent"
