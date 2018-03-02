@@ -726,6 +726,7 @@ public class LandingPage  extends AppCompatActivity implements LocationFragment.
     }
 
     // floor is -1 indexed
+    // xd and yd are in [0,1]
     public static Vertex getNearestVertex(double xd, double yd, int floor,
                                           double squareSideLength, Map<Vertex, Vertex> vMap) {
         int nearestX = (int) (xd * squareSideLength);
