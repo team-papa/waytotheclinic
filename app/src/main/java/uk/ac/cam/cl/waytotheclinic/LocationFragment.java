@@ -134,7 +134,7 @@ public class LocationFragment extends Fragment {
         } else {
             if (intermediateValue != null) {
                 // TODO: incorporate WiFi location in return value
-                callback.updateLocation(l);
+//                callback.updateLocation(l);
                 intermediateValue = null;
             }
         }
