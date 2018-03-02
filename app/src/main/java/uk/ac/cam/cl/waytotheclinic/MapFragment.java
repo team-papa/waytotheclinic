@@ -98,10 +98,10 @@ public class MapFragment extends Fragment implements OnMapReadyCallback{
 
         this.setFloor(2);
 
-        googleMap.setOnMapClickListener(new GoogleMap.OnMapClickListener() {
+        googleMap.setOnMapLongClickListener(new GoogleMap.OnMapLongClickListener() {
 
             @Override
-            public void onMapClick(LatLng latLng) {
+            public void onMapLongClick(LatLng latLng) {
                 Double lat = latLng.latitude;
                 Double lon = latLng.longitude;
                 Log.d("Click: ", lat + " " + lon);
