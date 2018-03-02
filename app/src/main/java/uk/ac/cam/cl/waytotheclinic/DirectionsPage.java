@@ -253,7 +253,7 @@ public class DirectionsPage extends LandingPage {
             @Override
             public void onClick(View view) {
                 Toast.makeText(getApplicationContext(), "My location!", Toast.LENGTH_SHORT).show();
-                LatLng latLng = new LatLng(26, 98.6);
+                LatLng latLng = new LatLng(mCurrentLocation.x,mCurrentLocation.y);
                 CameraUpdate cameraUpdate = CameraUpdateFactory.newLatLngZoom(latLng, 1);
                 mapFragment2.googleMap.animateCamera(cameraUpdate);
             }
