@@ -31,12 +31,16 @@ import com.google.android.gms.maps.model.TileProvider;
 import com.google.android.gms.maps.model.UrlTileProvider;
 
 import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.StringReader;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.nio.Buffer;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -70,16 +74,49 @@ public class MapFragment extends Fragment implements OnMapReadyCallback{
             TileProvider mapTileProvider = new UrlTileProvider(256, 256) {
                 @Override
                 public URL getTileUrl(int x, int y, int zoom) {
-                    Log.d(TAG, "getTileUrl: getting " + x + ", " + y + ", " + zoom);
+//                    Log.d(TAG, "getTileUrl: getting " + x + ", " + y + ", " + zoom);
                     try {
                         if (!tilePopulated(Floor, zoom, x, y))
-                            return new URL("http://cjj39.user.srcf.net/WayToTheClinic/blank.png");
-                        String url = String.format("http://cjj39.user.srcf.net/WayToTheClinic/TileMap%d/%d/%d/%d.png", Floor, zoom, x, y);
-                        return new URL(url);
+                            return getRemoteOrLocal("blank.png");
+
+                        return getRemoteOrLocal(String.format("TileMap%d/%d/%d/%d.png", Floor, zoom, x, y));
                     } catch (MalformedURLException e) {
                         e.printStackTrace();
                     }
                     return null;
+                }
+
+                private String baseTilePath = (getActivity().getExternalFilesDir(null).getAbsolutePath()) + "/TileStore/";
+                private String remoteTilePath = "http://cjj39.user.srcf.net/WayToTheClinic/";
+
+                public URL getRemoteOrLocal(String path) throws MalformedURLException {
+                    File local = new File(baseTilePath + path);
+                    if(!local.exists()) {
+                        //load data from server then write to local
+                        URL remoteURL = new URL(remoteTilePath + path);
+
+                        try {
+                            BufferedInputStream in = new BufferedInputStream(
+                                    remoteURL.openStream());
+
+                            local.getParentFile().mkdirs();
+
+                            BufferedOutputStream out = new BufferedOutputStream(
+                                    new FileOutputStream(local));
+
+                            byte[] buffer = new byte[128];
+                            for(int read; (read = in.read(buffer)) > 0; ){
+                                out.write(buffer, 0, read);
+                            }
+
+                            in.close();
+                            out.close();
+
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                    return new URL("file://" + baseTilePath + path);
                 }
             };
             mapOverlay = googleMap.addTileOverlay(new TileOverlayOptions().zIndex(1).tileProvider(mapTileProvider));
