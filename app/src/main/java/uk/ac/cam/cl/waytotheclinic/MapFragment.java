@@ -190,6 +190,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback{
         closestPoint.x = closestPoint.x / 960;
         closestPoint.y = closestPoint.y / 960;
 
+
         // We now have Point in map coordinates
         Log.d("Closest Point:", closestPoint.x + " " + closestPoint.y);
 
@@ -199,6 +200,16 @@ public class MapFragment extends Fragment implements OnMapReadyCallback{
 
         Log.d("Convert to LatLng:", closestLatLng.latitude + " " + closestLatLng.longitude);
 
+        if(latLng.latitude == closestLatLng.latitude) {
+            Log.d("Success: ","Latitude");
+        } else {
+            Log.d("Failure: ","Latitude");
+        }
+        if(latLng.longitude == closestLatLng.longitude){
+            Log.d("Success: ","Longitude");
+        } else {
+            Log.d("Failure: ","Latitude");
+        }
 
         if (mLocationMarker == null) {
             MarkerOptions op = new MarkerOptions();
@@ -221,16 +232,16 @@ public class MapFragment extends Fragment implements OnMapReadyCallback{
 
     public Point fromLatLngToPoint(LatLng latLng) {
         Double x = (latLng.longitude + 180) / 360;
-        Double y = (latLng.latitude + 180) / 360;
-        //Double y = ((1 - Math.log(Math.tan(latLng.latitude * Math.PI / 180) + 1 / Math.cos(latLng.latitude * Math.PI / 180)) / Math.PI) / 2 * Math.pow(2, 0));
+        //Double y = (latLng.latitude + 180) / 360;
+        Double y = ((1 - Math.log(Math.tan(latLng.latitude * Math.PI / 180) + 1 / Math.cos(latLng.latitude * Math.PI / 180)) / Math.PI) / 2);
         return new Point(x, y, 0);
     };
 
     public LatLng fromPointToLatLng(Point point){
         Double lng = point.x * 360 - 180;
-        Double lat = point.y * 360 - 180;
-        //Double n = Math.PI - 2 * Math.PI * point.y;
-        //Double lat = (180 / Math.PI * Math.atan(0.5 * (Math.exp(n) - Math.exp(-n))));
+        //Double lat = point.y * 360 - 180;
+        Double n = Math.PI - 2 * Math.PI * point.y;
+        Double lat = (180 / Math.PI * Math.atan(0.5 * (Math.exp(n) - Math.exp(-n))));
         return new LatLng(lat, lng);
     };
 
