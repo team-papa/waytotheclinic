@@ -257,6 +257,31 @@ public class MapFragment extends Fragment implements OnMapReadyCallback{
         return Floor;
     }
 
+    public List<Edge> truncatePath(List<Edge> edgesToSkipPast,
+                                   List<Edge> edgePath, int instructionNumber) {
+
+        ArrayList<Edge> remainingPath = new ArrayList<>();
+
+        if (instructionNumber == 0) return remainingPath;
+
+        Edge edgeToSkipPast = edgesToSkipPast.get(instructionNumber - 1);
+
+        int i = 0;
+        while (!edgePath.get(i).equals(edgeToSkipPast)) {
+            i++;
+        }
+
+        i++; // skip past it too
+
+        // put rest in remainingPath and return it
+        while (i < edgePath.size()) {
+            remainingPath.add(edgePath.get(i));
+        }
+
+
+        return remainingPath;
+    }
+
     public void setPath(List<Point> path){
         pathTileProvider.setPath(path);
 
