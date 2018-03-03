@@ -1,7 +1,9 @@
 package uk.ac.cam.cl.waytotheclinic;
 
+import android.app.Activity;
 import android.app.Fragment;
 import android.content.Context;
+import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
@@ -12,6 +14,9 @@ import android.graphics.drawable.BitmapDrawable;
 import android.location.Location;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
+import android.support.constraint.ConstraintLayout;
+import android.support.constraint.ConstraintSet;
+import android.support.design.widget.FloatingActionButton;
 import android.support.v4.content.ContextCompat;
 import android.util.Log;
 import android.util.SparseArray;
@@ -20,12 +25,15 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.TextView;
 
+import com.google.android.gms.maps.CameraUpdate;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapView;
 import com.google.android.gms.maps.MapsInitializer;
 import com.google.android.gms.maps.OnMapReadyCallback;
+import com.google.android.gms.maps.model.CircleOptions;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
@@ -56,6 +64,8 @@ import java.util.Map;
 import java.util.Scanner;
 
 import static android.content.ContentValues.TAG;
+import static uk.ac.cam.cl.waytotheclinic.LandingPage.history;
+import static uk.ac.cam.cl.waytotheclinic.LandingPage.searchString;
 
 public class MapFragment extends Fragment implements OnMapReadyCallback{
     MapView mapView = null;
@@ -151,7 +161,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback{
             @Override
             public void onMapLongClick(LatLng latLng) {
 
-                Log.d("clicked values:", latLng.latitude + ":" + latLng.longitude);
+                //Log.d("clicked values:", latLng.latitude + ":" + latLng.longitude);
                 setLocation(latLng);
             }
         });
@@ -161,6 +171,20 @@ public class MapFragment extends Fragment implements OnMapReadyCallback{
     public void setLocation(LatLng latLng){
 
         locTileProvider.setLocation(new Point(latLng.latitude,latLng.longitude,0));
+
+        if (mLocationMarker == null) {
+            MarkerOptions op = new MarkerOptions();
+            op.title("Current Location");
+            op.position(latLng);
+            /*Bitmap bMap = BitmapFactory.decodeResource(getResources(), R.drawable.mylocmap);
+            Bitmap bMapScaled = Bitmap.createScaledBitmap(bMap, dpToPx(32.0F), dpToPx(32.0F), true);
+            op.icon(BitmapDescriptorFactory.fromBitmap(bMapScaled));*/
+            mLocationMarker = googleMap.addMarker(op);
+        } else {
+            mLocationMarker.setPosition(latLng);
+        }
+
+        LandingPage.setCurrentLocation(new Point(latLng.latitude,latLng.longitude,1));
 
         // We currently have a LatLng in lat/long coordinates
         Log.d("Initial LatLng:", latLng.latitude + " " + latLng.longitude);
@@ -183,8 +207,46 @@ public class MapFragment extends Fragment implements OnMapReadyCallback{
 
         Vertex closest = LandingPage.getNearestVertex(mapLoc.x,mapLoc.y,0,960,vertexMap);
 
+        ArrayList<String> labelsList = closest.getLabels();
+        if(labelsList != null && labelsList.size() != 0) {
+            String topLabel = labelsList.get(0);
+            Log.d("Closest Point:", topLabel.toString());
+
+            //LatLng ll = new LatLng(la);
+            CameraUpdate cameraUpdate = CameraUpdateFactory.newLatLngZoom(latLng, 1);
+            googleMap.animateCamera(cameraUpdate);
+
+            searchString = topLabel;
+            LandingPage.toClosestVertex = closest;
+
+            ConstraintLayout bottom_white_box = getActivity().findViewById(R.id.bottom_white_box);
+            ConstraintLayout main_layout = getActivity().findViewById(R.id.main_layout);
+            ConstraintLayout directions = getActivity().findViewById(R.id.directions);
+            TextView search_term = getActivity().findViewById(R.id.search_term);
+            FloatingActionButton ae_button = getActivity().findViewById(R.id.ae_button);
+
+            // Make bottom bar containing ->DIRECTIONS button appear
+            bottom_white_box.setVisibility(View.VISIBLE);
+            ae_button.setVisibility(View.INVISIBLE);
+            ConstraintSet constraintSet = new ConstraintSet();
+            constraintSet.clone(main_layout);
+            constraintSet.connect(R.id.my_location_button, ConstraintSet.BOTTOM, R.id.bottom_white_box, ConstraintSet.TOP, dpToPx(16.0F));
+            constraintSet.applyTo(main_layout);
+
+            search_term.setText(searchString);
+            directions.setOnClickListener(new View.OnClickListener(){
+                @Override
+                public void onClick(View view) {
+                    Intent intent = new Intent(getActivity().getBaseContext(), DirectionsPage.class);
+                    startActivity(intent);
+                }
+            });
+        }
+
+/*
         Point closestPoint = getPointFromVertex(closest,0,1);
 
+        Log.d("Closest Point:", closestPoint.x + " " + closestPoint.y);
 
         // Divide by 960 to convert from vertex to map coordinates
 
@@ -200,20 +262,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback{
         LatLng closestLatLng = fromPointToLatLng(closestPoint);
 
         Log.d("Convert to LatLng:", closestLatLng.latitude + " " + closestLatLng.longitude);
-
-        if (mLocationMarker == null) {
-            MarkerOptions op = new MarkerOptions();
-            op.title("Current Location");
-            op.position(closestLatLng);
-            Bitmap bMap = BitmapFactory.decodeResource(getResources(), R.drawable.mylocmap);
-            Bitmap bMapScaled = Bitmap.createScaledBitmap(bMap, dpToPx(32.0F), dpToPx(32.0F), true);
-            op.icon(BitmapDescriptorFactory.fromBitmap(bMapScaled));
-            mLocationMarker = googleMap.addMarker(op);
-        } else {
-            mLocationMarker.setPosition(closestLatLng);
-        }
-
-        LandingPage.setCurrentLocation(new Point(closestLatLng.latitude,closestLatLng.longitude,1));
+*/
 
         //invalidate cache to cause update
         locOverlay.clearTileCache();
@@ -314,6 +363,25 @@ public class MapFragment extends Fragment implements OnMapReadyCallback{
         return new Point(x, y, floor);
     }
 
+    public void setLocation(Point loc){
+
+        locTileProvider.setLocation(loc);
+
+        googleMap.addMarker( new MarkerOptions()
+                .title("Current Location")
+                .position( new LatLng( loc.x, loc.y ))
+        );
+        /*googleMap.setOnCameraMoveListener(new GoogleMap.OnCameraMoveListener() {
+            @Override
+            public void onCameraMove() {
+                Log.d("MapFragment", googleMap.getCameraPosition().toString());
+            }
+        });*/
+
+        //invalidate cache to cause update
+        locOverlay.clearTileCache();
+        mapView.invalidate();
+    }
 
     //region android boilerplate to get mapView working
 

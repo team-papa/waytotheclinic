@@ -9,6 +9,10 @@ import android.content.SharedPreferences;
 import android.content.res.ColorStateList;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.hardware.Sensor;
+import android.hardware.SensorEvent;
+import android.hardware.SensorEventListener;
+import android.hardware.SensorManager;
 import android.location.Location;
 import android.net.wifi.WifiManager;
 import android.os.Bundle;
@@ -46,9 +50,11 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.PriorityQueue;
+import java.util.Queue;
 import java.util.Set;
 import java.util.TreeSet;
 
@@ -67,7 +73,10 @@ import com.google.android.gms.tasks.OnSuccessListener;
 
 import static uk.ac.cam.cl.waytotheclinic.VertexComparator.ManhattanDistance2D;
 
-public class LandingPage  extends AppCompatActivity implements LocationFragment.LocationListener, NavigationView.OnNavigationItemSelectedListener {
+public class LandingPage  extends AppCompatActivity implements LocationFragment.LocationListener, NavigationView.OnNavigationItemSelectedListener,
+        SensorEventListener {
+
+
     private final String LOCATION_FRAGMENT_TAG = "location-fragment";
     private final int LOCATION_PERMISSIONS = 1;
 
@@ -76,6 +85,19 @@ public class LandingPage  extends AppCompatActivity implements LocationFragment.
 
     private String[] places = new String[]{"Belgium", "Frodo", "France", "Italy", "Germany", "Spain"};
     public static MapFragment.Point mCurrentLocation;
+
+    private SensorManager mSensorManager;
+    private Sensor mAccelerometer;
+    private Sensor mMagnetometer;
+    private Sensor mStepCounter;
+
+    private final float[] mAccelerometerReading = new float[3];
+    private final float[] mMagnetometerReading = new float[3];
+    private final float[] mRotationMatrix = new float[9];
+    private final float[] mOrientationAngles = new float[3];
+    private Float mBearing;
+
+    LinkedList<Float> mBearingQueue;
 
     ConstraintLayout top_green_box;
     CustomAutoCompleteTextView search_box;
@@ -434,6 +456,12 @@ public class LandingPage  extends AppCompatActivity implements LocationFragment.
                     return true;
                 }
         });
+        mSensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
+        mAccelerometer = mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
+        mMagnetometer = mSensorManager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD);
+        mBearingQueue = new LinkedList<>();
+        mBearingQueue.offer(new Float(0.0));
+        mStepCounter = mSensorManager.getDefaultSensor(Sensor.TYPE_STEP_DETECTOR);
     }
 
 
@@ -531,6 +559,9 @@ public class LandingPage  extends AppCompatActivity implements LocationFragment.
         super.onResume();
         check_box = findViewById(R.id.check_box);
         check_box.setChecked(noStairs);
+
+        mSensorManager.registerListener(this, mAccelerometer, SensorManager.SENSOR_DELAY_NORMAL);
+        mSensorManager.registerListener(this, mMagnetometer, SensorManager.SENSOR_DELAY_NORMAL);
     }
 
     @Override
@@ -711,6 +742,7 @@ public class LandingPage  extends AppCompatActivity implements LocationFragment.
 
     @Override
     public void updateLocation(Location l) {
+
         //mCurrentLocation = l;
         Log.i("waytotheclinic", "waytotheclinic location updated: " + l.toString());
 
@@ -751,5 +783,63 @@ public class LandingPage  extends AppCompatActivity implements LocationFragment.
             }
         }
         return candidate;
+    }
+
+    @Override
+    public void onAccuracyChanged(Sensor sensor, int accuracy) {
+        // Do something here if sensor accuracy changes.
+    }
+
+    @Override
+    public void onSensorChanged(SensorEvent event) {
+        if (event.sensor == mAccelerometer) {
+            System.arraycopy(event.values, 0, mAccelerometerReading,
+                    0, mAccelerometerReading.length);
+        }
+        else if (event.sensor == mMagnetometer) {
+            System.arraycopy(event.values, 0, mMagnetometerReading,
+                    0, mMagnetometerReading.length);
+        }
+        /*else if (event.sensor == mStepCounter) {
+            for(Float fl : event.values) {
+                Log.d("values: ", fl.toString());
+            }
+        }*/
+        updateOrientationAngles();
+    }
+
+    // Compute the three orientation angles based on the most recent readings from
+    // the device's accelerometer and magnetometer.
+    public void updateOrientationAngles() {
+        // Update rotation matrix, which is needed to update orientation angles.
+        mSensorManager.getRotationMatrix(mRotationMatrix, null,
+                mAccelerometerReading, mMagnetometerReading);
+
+        // "mRotationMatrix" now has up-to-date information.
+
+        mSensorManager.getOrientation(mRotationMatrix, mOrientationAngles);
+
+        // "mOrientationAngles" now has up-to-date information.
+
+        mBearing = mOrientationAngles[0];
+        Boolean check = hasChangedDirection();
+        //Log.d("Angle: ", mBearing.toString());
+        //Log.d("Changed: ", check.toString());
+    }
+
+    public boolean hasChangedDirection() {
+        if(mBearingQueue.size() >= 100) {
+            mBearingQueue.poll();
+        }
+        Float oldDirection = mBearingQueue.peekFirst();
+        if(Math.abs(mBearing - oldDirection) > 1) {
+            mBearingQueue.clear();
+            mBearingQueue.offer(mBearing);
+            return true;
+        }
+        else {
+            mBearingQueue.offer(mBearing);
+            return false;
+        }
     }
 }
