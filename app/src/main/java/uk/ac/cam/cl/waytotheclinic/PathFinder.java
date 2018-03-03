@@ -95,7 +95,7 @@ public class PathFinder {
             // If it's stairs of lift then say so
             if (e.getInVertex().getZ() != e.getOutVertex().getZ()) {
 
-                if (!flushStraightLabelList(straightLabelList).equals("")) {
+                if (!(flushStraightLabelList(straightLabelList).equals("") && textDirection == "")) {
                     textDirection += flushStraightLabelList(straightLabelList);
 
                     directions.add(new Instruction(R.drawable.straight, textDirection));
@@ -150,15 +150,15 @@ public class PathFinder {
                 String placeName = (labels.size() > 0) ? labels.get(0) : "";
 
                 if (turnType != TurnType.STRAIGHT) {
-                    if (!flushStraightLabelList(straightLabelList).equals("")) {
+                    if (!(flushStraightLabelList(straightLabelList).equals("") && textDirection == "")) {
                         textDirection += flushStraightLabelList(straightLabelList);
 
                         directions.add(new Instruction(R.drawable.straight, textDirection));
                         whichEdge.add(e);
 
                         textDirection = "";
-                        straightLabelList.clear();
                         assert (straightLabelList.size() == 0);
+                        straightLabelList.clear();
                     }
 
                     int icon = 1;
