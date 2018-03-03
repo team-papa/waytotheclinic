@@ -1,6 +1,5 @@
 package uk.ac.cam.cl.waytotheclinic;
 
-import android.content.Context;
 import android.location.Location;
 import android.net.wifi.ScanResult;
 import android.net.wifi.WifiManager;

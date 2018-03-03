@@ -11,11 +11,6 @@ import com.google.android.gms.maps.model.TileProvider;
 import java.io.ByteArrayOutputStream;
 import java.util.List;
 
-
-/**
- * Created by Chris on 26/02/2018.
- */
-
 public class PathTileProvider implements TileProvider {
     private int TileWidth;
     private List<MapFragment.Point> path;

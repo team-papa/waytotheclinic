@@ -166,7 +166,7 @@ public class PathFinder {
                     if (lastedge != null && (lastedge.getInVertex().getZ() != lastedge.getOutVertex().getZ())) {
 
                         if (lastedge.getOutVertex().getZ() < 3) {
-                            icon = R.drawable.mylocmap;
+                            icon = R.drawable.change_floor_50;
                             textDirection = "Switch to the Level " + (lastedge.getOutVertex().getZ() + 1) +
                                     " maps using the sidebar";
                             directions.add(new Instruction(icon, textDirection));
@@ -174,7 +174,7 @@ public class PathFinder {
                         }
 
                         textDirection = "Turn";
-                        icon = R.drawable.straight;
+                        icon = R.drawable.turn_somewhere_50;
 
                     } else {
                         switch (turnType) {
