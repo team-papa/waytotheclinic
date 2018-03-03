@@ -1,30 +1,21 @@
 package uk.ac.cam.cl.waytotheclinic;
 
-import android.app.Activity;
 import android.app.Fragment;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.graphics.Canvas;
 import android.graphics.Color;
-import android.graphics.Paint;
-import android.graphics.Point;
-import android.graphics.drawable.BitmapDrawable;
-import android.location.Location;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.constraint.ConstraintLayout;
 import android.support.constraint.ConstraintSet;
 import android.support.design.widget.FloatingActionButton;
-import android.support.v4.content.ContextCompat;
 import android.util.Log;
-import android.util.SparseArray;
 import android.util.TypedValue;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Button;
 import android.widget.TextView;
 
 import com.google.android.gms.maps.CameraUpdate;
@@ -33,12 +24,10 @@ import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapView;
 import com.google.android.gms.maps.MapsInitializer;
 import com.google.android.gms.maps.OnMapReadyCallback;
-import com.google.android.gms.maps.model.CircleOptions;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
-import com.google.android.gms.maps.model.Tile;
 import com.google.android.gms.maps.model.TileOverlay;
 import com.google.android.gms.maps.model.TileOverlayOptions;
 import com.google.android.gms.maps.model.TileProvider;
@@ -46,30 +35,23 @@ import com.google.android.gms.maps.model.UrlTileProvider;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
-import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.StringReader;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.nio.Buffer;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Scanner;
 
-import static android.content.ContentValues.TAG;
-import static uk.ac.cam.cl.waytotheclinic.LandingPage.history;
 import static uk.ac.cam.cl.waytotheclinic.LandingPage.searchString;
 
 public class MapFragment extends Fragment implements OnMapReadyCallback{
     MapView mapView = null;
-    GoogleMap googleMap;
+    static GoogleMap googleMap;
     private String[] populatedTiles;
     private int Floor = 1;
 
@@ -80,7 +62,6 @@ public class MapFragment extends Fragment implements OnMapReadyCallback{
     private PathTileProvider pathTileProvider;
     private LocTileProvider locTileProvider;
 
-    private Marker mLocationMarker;
 
     @Override
     public void onMapReady(final GoogleMap googleMap) {
@@ -92,7 +73,6 @@ public class MapFragment extends Fragment implements OnMapReadyCallback{
             TileProvider mapTileProvider = new UrlTileProvider(256, 256) {
                 @Override
                 public URL getTileUrl(int x, int y, int zoom) {
-//                    Log.d(TAG, "getTileUrl: getting " + x + ", " + y + ", " + zoom);
                     try {
                         if (!tilePopulated(Floor, zoom, x, y))
                             return getRemoteOrLocal("blank.png");
@@ -151,18 +131,18 @@ public class MapFragment extends Fragment implements OnMapReadyCallback{
         locOverlay = googleMap.addTileOverlay(new TileOverlayOptions().zIndex(3).tileProvider(locTileProvider));
         //endregion
 
+        // Set initial floor to floor 2.
         this.setFloor(2);
 
 
         // When the map is pressed, a position in longitude/latitude for the click is returned.
-
         googleMap.setOnMapLongClickListener(new GoogleMap.OnMapLongClickListener() {
 
             @Override
             public void onMapLongClick(LatLng latLng) {
-
-                //Log.d("clicked values:", latLng.latitude + ":" + latLng.longitude);
-                setLocation(latLng);
+                if(getActivity().findViewById(R.id.bottom_white_box) != null) {
+                    setLocation(latLng);
+                }
             }
         });
 
@@ -172,31 +152,22 @@ public class MapFragment extends Fragment implements OnMapReadyCallback{
 
         locTileProvider.setLocation(new Point(latLng.latitude,latLng.longitude,0));
 
-        if (mLocationMarker == null) {
+        if (LandingPage.clickedLocationMarker == null) {
             MarkerOptions op = new MarkerOptions();
-            op.title("Current Location");
             op.position(latLng);
-            /*Bitmap bMap = BitmapFactory.decodeResource(getResources(), R.drawable.mylocmap);
+            Bitmap bMap = BitmapFactory.decodeResource(getResources(), R.drawable.clicked_loc_marker);
             Bitmap bMapScaled = Bitmap.createScaledBitmap(bMap, dpToPx(32.0F), dpToPx(32.0F), true);
-            op.icon(BitmapDescriptorFactory.fromBitmap(bMapScaled));*/
-            mLocationMarker = googleMap.addMarker(op);
+            op.icon(BitmapDescriptorFactory.fromBitmap(bMapScaled));
+            LandingPage.clickedLocationMarker = googleMap.addMarker(op);
         } else {
-            mLocationMarker.setPosition(latLng);
+            LandingPage.clickedLocationMarker.setPosition(latLng);
         }
 
-        LandingPage.setCurrentLocation(new Point(latLng.latitude,latLng.longitude,1));
-
-        // We currently have a LatLng in lat/long coordinates
-        Log.d("Initial LatLng:", latLng.latitude + " " + latLng.longitude);
-
-        // We must convert this to a Point in map coordinates [0,1]
-
+        // We currently have a LatLng in lat/long coordinates. We must convert this to a Point in map coordinates [0,1]
         Point mapLoc = fromLatLngToPoint(latLng);
 
-        Log.d("Convert to Point:", mapLoc.x + " " + mapLoc.y);
 
         // Call getNearestVertex
-
         Context context = getActivity().getApplicationContext();
         HashSet<Vertex> vertexSet = (HashSet<Vertex>) LocationsProvider.generateVertices(context);
         HashMap<Vertex,Vertex> vertexMap = new HashMap<>();
@@ -212,7 +183,6 @@ public class MapFragment extends Fragment implements OnMapReadyCallback{
             String topLabel = labelsList.get(0);
             Log.d("Closest Point:", topLabel.toString());
 
-            //LatLng ll = new LatLng(la);
             CameraUpdate cameraUpdate = CameraUpdateFactory.newLatLngZoom(latLng, 1);
             googleMap.animateCamera(cameraUpdate);
 
@@ -243,27 +213,6 @@ public class MapFragment extends Fragment implements OnMapReadyCallback{
             });
         }
 
-/*
-        Point closestPoint = getPointFromVertex(closest,0,1);
-
-        Log.d("Closest Point:", closestPoint.x + " " + closestPoint.y);
-
-        // Divide by 960 to convert from vertex to map coordinates
-
-        closestPoint.x = closestPoint.x / 960;
-        closestPoint.y = closestPoint.y / 960;
-
-
-        // We now have Point in map coordinates
-        Log.d("Closest Point:", closestPoint.x + " " + closestPoint.y);
-
-        // Must convert to LatLng in Latitude/Longitude coordinates
-
-        LatLng closestLatLng = fromPointToLatLng(closestPoint);
-
-        Log.d("Convert to LatLng:", closestLatLng.latitude + " " + closestLatLng.longitude);
-*/
-
         //invalidate cache to cause update
         locOverlay.clearTileCache();
         mapView.invalidate();
@@ -275,7 +224,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback{
         return new Point(x, y, 0);
     };
 
-    public LatLng fromPointToLatLng(Point point){
+    public static LatLng fromPointToLatLng(Point point){
         Double lng = point.x * 360 - 180;
         Double n = Math.PI - 2 * Math.PI * point.y;
         Double lat = (180 / Math.PI * Math.atan(0.5 * (Math.exp(n) - Math.exp(-n))));
@@ -356,31 +305,11 @@ public class MapFragment extends Fragment implements OnMapReadyCallback{
         setPath(result);
     }
 
-    private Point getPointFromVertex(Vertex v, int ZOffset, double imgSize){
+    public static Point getPointFromVertex(Vertex v, int ZOffset, double imgSize){
         double x = ((double)v.getX())/imgSize;
         double y = ((double)v.getY())/imgSize;
         int floor = v.getZ() + ZOffset;
         return new Point(x, y, floor);
-    }
-
-    public void setLocation(Point loc){
-
-        locTileProvider.setLocation(loc);
-
-        googleMap.addMarker( new MarkerOptions()
-                .title("Current Location")
-                .position( new LatLng( loc.x, loc.y ))
-        );
-        /*googleMap.setOnCameraMoveListener(new GoogleMap.OnCameraMoveListener() {
-            @Override
-            public void onCameraMove() {
-                Log.d("MapFragment", googleMap.getCameraPosition().toString());
-            }
-        });*/
-
-        //invalidate cache to cause update
-        locOverlay.clearTileCache();
-        mapView.invalidate();
     }
 
     //region android boilerplate to get mapView working

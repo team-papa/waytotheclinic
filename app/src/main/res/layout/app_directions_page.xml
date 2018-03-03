@@ -190,7 +190,7 @@
 
 
     <fragment
-        android:id="@+id/map_fragment2"
+        android:id="@+id/map_fragment_dir"
         android:name="uk.ac.cam.cl.waytotheclinic.MapFragment"
         android:layout_width="0dp"
         android:layout_height="0dp"
@@ -214,7 +214,7 @@
         android:scaleType="center"
         android:tint="@color/colorDarkGrey"
         app:backgroundTint="@color/colorDirtyWhite"
-        app:layout_constraintBottom_toBottomOf="@+id/map_fragment2"
+        app:layout_constraintBottom_toBottomOf="@+id/map_fragment_dir"
         app:layout_constraintEnd_toEndOf="@+id/instructions"
         app:srcCompat="@drawable/myloc" />
 

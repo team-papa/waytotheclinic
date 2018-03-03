@@ -12,7 +12,6 @@ import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.os.Bundle;
-import android.view.Menu;
 import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
@@ -31,7 +30,10 @@ import android.widget.Toast;
 
 import com.google.android.gms.maps.CameraUpdate;
 import com.google.android.gms.maps.CameraUpdateFactory;
+import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.Marker;
+import com.google.android.gms.maps.model.MarkerOptions;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -50,9 +52,10 @@ public class DirectionsPage extends LandingPage {
     ListView instructions_list;
     ConstraintLayout instructions;
     DrawerLayout drawer_layout_dir;
-
     ConstraintLayout instructions_header;
-    MapFragment mapFragment2;
+    MapFragment map_fragment_dir;
+
+    private Marker myLocationMarker_dir;
 
 
     Map<String, String> extrahm = new HashMap<>();
@@ -65,7 +68,7 @@ public class DirectionsPage extends LandingPage {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_directions_page);
 
-        mapFragment2 = (MapFragment) getFragmentManager().findFragmentById(R.id.map_fragment2);
+        map_fragment_dir = (MapFragment) getFragmentManager().findFragmentById(R.id.map_fragment_dir);
         back_button = findViewById(R.id.back_button);
         from_box = findViewById(R.id.from_box);
         to_box = findViewById(R.id.to_box);
@@ -189,7 +192,7 @@ public class DirectionsPage extends LandingPage {
 
 
                 // RICHIE: from label to vertex
-                fromClosestVertex = fromLabelToVertex(hm.get("name"));
+                fromClosestVertex = getClosestMatchingVertex(hm.get("name"));
                 from_box.setText(hm.get("name"));
 
                 handlePathBuilding();
@@ -209,7 +212,7 @@ public class DirectionsPage extends LandingPage {
                 to_box.setAdapter(new SimpleAdapter(getBaseContext(), placesList, R.layout.autocomplete_layout, from, to));
 
                 // RICHIE: from label to vertex
-                toClosestVertex = fromLabelToVertex(hm.get("name"));
+                toClosestVertex = getClosestMatchingVertex(hm.get("name"));
                 to_box.setText(hm.get("name"));
 
                 handlePathBuilding();
@@ -253,9 +256,19 @@ public class DirectionsPage extends LandingPage {
             @Override
             public void onClick(View view) {
                 Toast.makeText(getApplicationContext(), "My location!", Toast.LENGTH_SHORT).show();
-                LatLng latLng = new LatLng(mCurrentLocation.x,mCurrentLocation.y);
+                LatLng latLng = new LatLng(myLocation.x, myLocation.y);
                 CameraUpdate cameraUpdate = CameraUpdateFactory.newLatLngZoom(latLng, 1);
-                mapFragment2.googleMap.animateCamera(cameraUpdate);
+                if (myLocationMarker_dir == null) {
+                    MarkerOptions op = new MarkerOptions();
+                    op.position(latLng);
+                    Bitmap bMap = BitmapFactory.decodeResource(getResources(), R.drawable.mylocmap);
+                    Bitmap bMapScaled = Bitmap.createScaledBitmap(bMap, dpToPx(32.0F), dpToPx(32.0F), true);
+                    op.icon(BitmapDescriptorFactory.fromBitmap(bMapScaled));
+                    myLocationMarker_dir = MapFragment.googleMap.addMarker(op);
+                } else {
+                    myLocationMarker_dir.setPosition(latLng);
+                }
+                map_fragment_dir.googleMap.animateCamera(cameraUpdate);
             }
         });
     }
@@ -331,7 +344,7 @@ public class DirectionsPage extends LandingPage {
 
 
             // TODO render path between fromClosestVertex to toClosestVertex
-            mapFragment2.setPath(path, 960);
+            map_fragment_dir.setPath(path, 960);
         }
     }
 
@@ -344,15 +357,15 @@ public class DirectionsPage extends LandingPage {
         // Handle side-menu item-clicks
         switch (item.getItemId()) {
             case R.id.nav_first_floor:
-                mapFragment2.setFloor(1);
+                map_fragment_dir.setFloor(1);
                 Toast.makeText(getApplicationContext(), "First floor", Toast.LENGTH_SHORT).show();
                 break;
             case R.id.nav_second_floor:
-                mapFragment2.setFloor(2);
+                map_fragment_dir.setFloor(2);
                 Toast.makeText(getApplicationContext(), "Second floor", Toast.LENGTH_SHORT).show();
                 break;
             case R.id.nav_third_floor:
-                mapFragment2.setFloor(3);
+                map_fragment_dir.setFloor(3);
                 Toast.makeText(getApplicationContext(), "Third floor", Toast.LENGTH_SHORT).show();
                 break;
         }

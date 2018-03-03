@@ -10,10 +10,6 @@ import com.google.android.gms.maps.model.TileProvider;
 
 import java.io.ByteArrayOutputStream;
 
-/**
- * Created by Chris on 26/02/2018.
- */
-
 public class LocTileProvider implements TileProvider{
     private MapFragment.Point location;
     private int TileWidth;
