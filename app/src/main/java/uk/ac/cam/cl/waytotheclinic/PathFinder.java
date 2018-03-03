@@ -1,5 +1,7 @@
 package uk.ac.cam.cl.waytotheclinic;
 
+import android.util.Pair;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -73,11 +75,12 @@ public class PathFinder {
             }
         }
         System.err.println("Returning null, OUCH");
-        return null;
+        return new ArrayList<>();
     }
 
-    public static List<Instruction> getTextDirections(List<Edge> path) {
+    public static Pair<List<Instruction>, List<Edge>> getTextDirections(List<Edge> path) {
         List<Instruction> directions = new ArrayList<>();
+        List<Edge> whichEdge = new ArrayList<>();
 
         double orientAngle = path != null && path.size() > 0 ? path.get(0).getAngle() : 0;
 
@@ -89,11 +92,23 @@ public class PathFinder {
 
             if (e.getInVertex().getZ() != e.getOutVertex().getZ()) {
                 if (e.isStairs()) {
+                    // Only add the last direction of where to take the stairs in this stairwell
+                    // This turns this                         into this
+                    // Take the stairs to level 1             Take the stairs to level 3
+                    // Take the stairs to level 2
+                    // Take the stairs to level 3
+                    if (directions.get(directions.size() - 1)
+                            .getInstructionText().contains("Take the stairs")) {
+                        directions.remove(directions.size() - 1);
+                        whichEdge.remove(whichEdge.size() - 1);
+                    }
                     directions.add(new Instruction(R.drawable.stairs,
                             "Take the stairs to level " + (e.getOutVertex().getZ() + 1)));
+                    whichEdge.add(e);
                 } else {
                     directions.add(new Instruction(R.drawable.lift,
                             "Take the lift to level " + (e.getOutVertex().getZ() + 1)));
+                    whichEdge.add(e);
                 }
             } else {
 
@@ -101,15 +116,15 @@ public class PathFinder {
                 assert (newAngle < 360 && newAngle >= 0);
                 assert (orientAngle < 360 && orientAngle >= 0);
 
-                double diffAngle = orientAngle - newAngle;
+                double diffAngle = (orientAngle - newAngle + 360) % 360;
 
                 TurnType turnType;
 
                 if (Math.abs(diffAngle) == 180) {
                     turnType = TurnType.UTURN;
-                } else if (diffAngle < 0) {
+                } else if (diffAngle > 180 && diffAngle < 360 && diffAngle == 270 ) {
                     turnType = TurnType.LEFT;
-                } else if (diffAngle > 0) {
+                } else if (diffAngle > 0 && diffAngle < 180 && diffAngle == 90) {
                     turnType = TurnType.RIGHT;
                 } else {
                     turnType = TurnType.STRAIGHT;
@@ -137,6 +152,7 @@ public class PathFinder {
                         textDirection = textDirection.replaceAll(",$", "");
 
                         directions.add(new Instruction(R.drawable.straight, textDirection));
+                        whichEdge.add(e);
 
                         straightLabelList.clear();
                         assert (straightLabelList.size() == 0);
@@ -166,6 +182,7 @@ public class PathFinder {
                     }
 
                     directions.add(new Instruction(icon, textDirection));
+                    whichEdge.add(e);
 
                     textDirection = "";
                 } else {
@@ -177,11 +194,13 @@ public class PathFinder {
                 // point towards new direction
                 orientAngle = newAngle;
             }
+
         }
 
         directions.add(new Instruction(R.drawable.destination, "You have arrived at your destination!"));
 
-        return directions;
+
+        return new Pair<>(directions, whichEdge);
     }
 
 

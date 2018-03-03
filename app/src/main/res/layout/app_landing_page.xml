@@ -36,7 +36,7 @@
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent"></View>
+            app:layout_constraintTop_toTopOf="parent"/>
 
 
         <ImageButton
@@ -50,7 +50,7 @@
             android:src="@drawable/menu"
             android:tint="@color/colorDirtyWhite"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent"></ImageButton>
+            app:layout_constraintTop_toTopOf="parent"/>
 
         <uk.ac.cam.cl.waytotheclinic.CustomAutoCompleteTextView
             android:id="@+id/search_box"
@@ -163,8 +163,6 @@
         app:layout_constraintBottom_toTopOf="@+id/bottom_white_box"
         app:layout_constraintEnd_toEndOf="parent"
         app:srcCompat="@drawable/myloc" />
-        app:srcCompat="@drawable/myloc" />
-
 
 
 

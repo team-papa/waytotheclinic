@@ -124,8 +124,9 @@ public class LocationFragment extends Fragment {
     @Override
     public void onPause() {
         super.onPause();
-
-        timer.cancel();
+        if (timer != null) {
+            timer.cancel();
+        }
     }
 
     private synchronized void locationCallback(boolean gpsData, Location l) {
@@ -134,7 +135,7 @@ public class LocationFragment extends Fragment {
         } else {
             if (intermediateValue != null) {
                 // TODO: incorporate WiFi location in return value
-                callback.updateLocation(l);
+//                callback.updateLocation(l);
                 intermediateValue = null;
             }
         }

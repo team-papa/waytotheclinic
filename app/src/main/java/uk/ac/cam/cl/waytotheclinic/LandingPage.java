@@ -71,8 +71,12 @@ import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.tasks.OnSuccessListener;
 
+import static uk.ac.cam.cl.waytotheclinic.VertexComparator.ManhattanDistance2D;
+
 public class LandingPage  extends AppCompatActivity implements LocationFragment.LocationListener, NavigationView.OnNavigationItemSelectedListener,
         SensorEventListener {
+
+
     private final String LOCATION_FRAGMENT_TAG = "location-fragment";
     private final int LOCATION_PERMISSIONS = 1;
 
@@ -80,7 +84,7 @@ public class LandingPage  extends AppCompatActivity implements LocationFragment.
     ConstraintLayout main_layout;
 
     private String[] places = new String[]{"Belgium", "Frodo", "France", "Italy", "Germany", "Spain"};
-    private Location mCurrentLocation;
+    public static MapFragment.Point mCurrentLocation;
 
     private SensorManager mSensorManager;
     private Sensor mAccelerometer;
@@ -130,6 +134,7 @@ public class LandingPage  extends AppCompatActivity implements LocationFragment.
     // Source and destination vertices
     static Vertex fromClosestVertex;
     static Vertex toClosestVertex;
+    static String searchString;
 
 //    final static Bundle mapBundle = new Bundle();
 
@@ -237,9 +242,11 @@ public class LandingPage  extends AppCompatActivity implements LocationFragment.
                 addRecentSearch(hm, placesList, history);
                 search_box.setAdapter(new SimpleAdapter(getBaseContext(), placesList, R.layout.autocomplete_layout, from, to));
 
+                searchString = hm.get("name");
+
                 // RICHIE: from label to vertex
-                toClosestVertex = fromLabelToVertex(hm.get("name"));
-                search_box.setText(toClosestVertex.toString());
+                toClosestVertex = fromLabelToVertex(searchString);
+                search_box.setText(searchString);
 
                 // TODO add action that moves map to selected place hm.get("name") (which is now closestVertex)
 
@@ -252,7 +259,7 @@ public class LandingPage  extends AppCompatActivity implements LocationFragment.
                 constraintSet.connect(R.id.my_location_button, ConstraintSet.BOTTOM, R.id.bottom_white_box, ConstraintSet.TOP, dpToPx(16.0F));
                 constraintSet.applyTo(main_layout);
 
-                search_term.setText(toClosestVertex.toString());
+                search_term.setText(searchString);
                 directions.setOnClickListener(new View.OnClickListener(){
                     @Override
                     public void onClick(View view) {
@@ -378,6 +385,7 @@ public class LandingPage  extends AppCompatActivity implements LocationFragment.
             }
         });
 
+        mCurrentLocation = new MapFragment.Point(26, 98.6,1);
 
         // Make "my location" button responsive
         Bitmap bMap = BitmapFactory.decodeResource(getResources(), R.drawable.myloc);
@@ -387,10 +395,9 @@ public class LandingPage  extends AppCompatActivity implements LocationFragment.
             @Override
             public void onClick(View view) {
                 Toast.makeText(getApplicationContext(), "My location!", Toast.LENGTH_SHORT).show();
-                LatLng latLng = new LatLng(26, 98.6);
+                LatLng latLng = new LatLng(mCurrentLocation.x, mCurrentLocation.y);
                 CameraUpdate cameraUpdate = CameraUpdateFactory.newLatLngZoom(latLng, 1);
                 mapFragment.googleMap.animateCamera(cameraUpdate);
-                // TODO move map to user's location
             }
         });
 
@@ -571,14 +578,18 @@ public class LandingPage  extends AppCompatActivity implements LocationFragment.
 
         // Handle side-menu item-clicks
         switch (item.getItemId()) {
-            //todo fix floors
+            // TODO fix floors
             case R.id.nav_first_floor:
-                mapFragment.setFloor(2);
+                mapFragment.setFloor(1);
                 Toast.makeText(getApplicationContext(), "First floor", Toast.LENGTH_SHORT).show();
                 break;
             case R.id.nav_second_floor:
-                mapFragment.setFloor(3);
+                mapFragment.setFloor(2);
                 Toast.makeText(getApplicationContext(), "Second floor", Toast.LENGTH_SHORT).show();
+                break;
+            case R.id.nav_third_floor:
+                mapFragment.setFloor(3);
+                Toast.makeText(getApplicationContext(), "Third floor", Toast.LENGTH_SHORT).show();
                 break;
         }
 
@@ -633,6 +644,10 @@ public class LandingPage  extends AppCompatActivity implements LocationFragment.
     public Vertex fromLabelToVertex (String searchTerm) {
         // TODO make myLocation to always get updated to the user's current location
         Vertex myLocation = new Vertex(100, 200, 3);
+
+        if(searchTerm.equals("My location")) {
+            return myLocation;
+        }
 
         HashMap<Vertex, String> bestVertices = new HashMap<>();
         int bestLCS = 1; // set best LCS to 1, so we ignore vertices that have 0 match
@@ -712,19 +727,23 @@ public class LandingPage  extends AppCompatActivity implements LocationFragment.
             LOCATION_PERMISSIONS);
     }
 
+    // TODO for Alex: fix these before pushing to develop
+
     @Override
     public WifiManager getWifiManager() {
-        return (WifiManager) this.getSystemService(Context.WIFI_SERVICE);
+//        return (WifiManager) this.getSystemService(Context.WIFI_SERVICE);
+        return null;
     }
 
     @Override
     public void startLocationUpdates(LocationRequest lr, LocationCallback lc) {
-        LocationServices.getFusedLocationProviderClient(this).requestLocationUpdates(lr, lc, null);
+//        LocationServices.getFusedLocationProviderClient(this).requestLocationUpdates(lr, lc, null);
     }
 
     @Override
     public void updateLocation(Location l) {
-        mCurrentLocation = l;
+
+        //mCurrentLocation = l;
         Log.i("waytotheclinic", "waytotheclinic location updated: " + l.toString());
 
         double x = (l.getLatitude() - 52.173154) / (52.175751 - 52.173154) * (902 - 176) + 176;
@@ -734,7 +753,36 @@ public class LandingPage  extends AppCompatActivity implements LocationFragment.
 
         MapFragment.Point p = new MapFragment.Point(x, y, 0);
         //mapFragment.setLocation(p);
-        mapFragment.setLocation(new MapFragment.Point(26, 98.6, 0));
+        //mapFragment.setLocation(new MapFragment.Point(26, 98.6, 0));
+    }
+
+    public static void setCurrentLocation(MapFragment.Point p) {
+        mCurrentLocation = p;
+    }
+
+    // floor is -1 indexed
+    // xd and yd are in [0,1]
+    public static Vertex getNearestVertex(double xd, double yd, int floor,
+                                          double squareSideLength, Map<Vertex, Vertex> vMap) {
+        int nearestX = (int) (xd * squareSideLength);
+        int nearestY = (int) (yd * squareSideLength);
+
+        Vertex touched = new Vertex(nearestX, nearestY, floor);
+
+        Vertex candidate = null;
+        int bestDistance = Integer.MAX_VALUE;
+        for (Vertex v : vMap.keySet()) {
+            // Only consider it if they are on the same floor
+            if (v.getZ() != touched.getZ()) {
+                continue;
+            }
+
+            if (ManhattanDistance2D(touched, v) < bestDistance) {
+                candidate = v;
+                bestDistance = ManhattanDistance2D(touched, v);
+            }
+        }
+        return candidate;
     }
 
     @Override

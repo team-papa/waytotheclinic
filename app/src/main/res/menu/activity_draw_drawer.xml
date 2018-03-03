@@ -14,6 +14,10 @@
             android:icon="@drawable/second_50"
             android:title="Second floor"
             android:checked="true"/>
+        <item
+            android:id="@+id/nav_third_floor"
+            android:icon="@drawable/third_50"
+            android:title="Third floor" />
     </group>
 
 </menu>

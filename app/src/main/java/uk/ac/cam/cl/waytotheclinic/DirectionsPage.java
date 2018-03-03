@@ -6,6 +6,7 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.support.constraint.ConstraintLayout;
 import android.support.constraint.ConstraintSet;
+import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.NavigationView;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
@@ -28,6 +29,10 @@ import android.widget.SimpleAdapter;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.google.android.gms.maps.CameraUpdate;
+import com.google.android.gms.maps.CameraUpdateFactory;
+import com.google.android.gms.maps.model.LatLng;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -41,6 +46,7 @@ public class DirectionsPage extends LandingPage {
     AutoCompleteTextView to_box;
     CheckBox check_box;
     TextView check_box_text;
+    FloatingActionButton my_location_button_dir;
     ListView instructions_list;
     ConstraintLayout instructions;
     DrawerLayout drawer_layout_dir;
@@ -65,6 +71,7 @@ public class DirectionsPage extends LandingPage {
         to_box = findViewById(R.id.to_box);
         check_box = findViewById(R.id.check_box);
         check_box_text = findViewById(R.id.check_box_text);
+        my_location_button_dir = findViewById(R.id.my_location_button_dir);
         instructions_list = findViewById(R.id.instructions_list);
         instructions = findViewById(R.id.instructions);
         instructions_header = findViewById(R.id.instructions_header);
@@ -123,7 +130,7 @@ public class DirectionsPage extends LandingPage {
         });
 
         // Make destination box show the search term
-        to_box.setText(toClosestVertex.toString());
+        to_box.setText(searchString);
 
         // Enhance the places list of the "from" search box with the user's location
         List<Map<String, String>> enhancedPlacesList = new ArrayList<>(placesList);
@@ -183,7 +190,7 @@ public class DirectionsPage extends LandingPage {
 
                 // RICHIE: from label to vertex
                 fromClosestVertex = fromLabelToVertex(hm.get("name"));
-                from_box.setText(fromClosestVertex.toString());
+                from_box.setText(hm.get("name"));
 
                 handlePathBuilding();
 
@@ -203,7 +210,7 @@ public class DirectionsPage extends LandingPage {
 
                 // RICHIE: from label to vertex
                 toClosestVertex = fromLabelToVertex(hm.get("name"));
-                to_box.setText(toClosestVertex.toString());
+                to_box.setText(hm.get("name"));
 
                 handlePathBuilding();
             }
@@ -236,6 +243,21 @@ public class DirectionsPage extends LandingPage {
             }
         };
         instructions_header.setOnTouchListener(swipeListener);
+
+
+        // Make "my location" button responsive
+        Bitmap bMaploc = BitmapFactory.decodeResource(getResources(), R.drawable.myloc);
+        Bitmap bMapScaledloc = Bitmap.createScaledBitmap(bMaploc, dpToPx(24.0F), dpToPx(24.0F), true);
+        my_location_button_dir.setImageBitmap(bMapScaledloc);
+        my_location_button_dir.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Toast.makeText(getApplicationContext(), "My location!", Toast.LENGTH_SHORT).show();
+                LatLng latLng = new LatLng(mCurrentLocation.x,mCurrentLocation.y);
+                CameraUpdate cameraUpdate = CameraUpdateFactory.newLatLngZoom(latLng, 1);
+                mapFragment2.googleMap.animateCamera(cameraUpdate);
+            }
+        });
     }
 
 
@@ -249,7 +271,7 @@ public class DirectionsPage extends LandingPage {
         Animation an = new RotateAnimation(180.0F, 360.0F, dpToPx(8.0F),  dpToPx(8.0F));
 
         // Set the animation's parameters
-        an.setDuration(1000);               // duration in ms
+        an.setDuration(500);               // duration in ms
         an.setRepeatCount(0);                // -1 = infinite repeated
         an.setRepeatMode(Animation.REVERSE); // reverses each repeat
         an.setFillAfter(true);               // keep rotation after animation
@@ -257,6 +279,8 @@ public class DirectionsPage extends LandingPage {
         // Aply animation to image view
         findViewById(R.id.instructions_swipe_up_left).setAnimation(an);
         findViewById(R.id.instructions_swipe_up_right).setAnimation(an);
+
+        findViewById(R.id.my_location_button_dir).setVisibility(View.VISIBLE);
     }
 
 
@@ -270,7 +294,7 @@ public class DirectionsPage extends LandingPage {
         Animation an = new RotateAnimation(0.0F, 180.0F, dpToPx(8.0F),  dpToPx(8.0F));
 
         // Set the animation's parameters
-        an.setDuration(1000);               // duration in ms
+        an.setDuration(500);               // duration in ms
         an.setRepeatCount(0);                // -1 = infinite repeated
         an.setRepeatMode(Animation.REVERSE); // reverses each repeat
         an.setFillAfter(true);               // keep rotation after animation
@@ -278,6 +302,8 @@ public class DirectionsPage extends LandingPage {
         // Aply animation to image view
         findViewById(R.id.instructions_swipe_up_left).setAnimation(an);
         findViewById(R.id.instructions_swipe_up_right).setAnimation(an);
+
+        findViewById(R.id.my_location_button_dir).setVisibility(View.INVISIBLE);
     }
 
 
@@ -292,7 +318,7 @@ public class DirectionsPage extends LandingPage {
             // Get path in terms of edges and vertices
             PathFinder pf = new PathFinder();
             List<Edge> path = pf.getPath(fromClosestVertex, toClosestVertex, noStairs);
-            List<Instruction> textBasedDirections = pf.getTextDirections(path);
+            List<Instruction> textBasedDirections = pf.getTextDirections(path).first;
             TextInstructionsAdapter instrAdapter = new TextInstructionsAdapter(
                     getApplicationContext(),
                     R.layout.instruction_layout,
@@ -317,12 +343,16 @@ public class DirectionsPage extends LandingPage {
         // Handle side-menu item-clicks
         switch (item.getItemId()) {
             case R.id.nav_first_floor:
-                mapFragment2.setFloor(2);
+                mapFragment2.setFloor(1);
                 Toast.makeText(getApplicationContext(), "First floor", Toast.LENGTH_SHORT).show();
                 break;
             case R.id.nav_second_floor:
-                mapFragment2.setFloor(3);
+                mapFragment2.setFloor(2);
                 Toast.makeText(getApplicationContext(), "Second floor", Toast.LENGTH_SHORT).show();
+                break;
+            case R.id.nav_third_floor:
+                mapFragment2.setFloor(3);
+                Toast.makeText(getApplicationContext(), "Third floor", Toast.LENGTH_SHORT).show();
                 break;
         }
 

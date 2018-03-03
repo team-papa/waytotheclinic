@@ -33,14 +33,14 @@ public class LocationsProvider {
         Set<String> allLabels = new HashSet<>();
 
         ArrayList<String> vertexLabelList = new ArrayList<String>();
-/*
+      
         for(Vertex v: vertices) {
             vertexLabelList = v.getLabels();
             if(vertexLabelList != null && !vertexLabelList.contains(null)) { // TODO Solve nulls without having to handle them here
                 allLabels.addAll(vertexLabelList);
             }
         }
-*/
+      
         return allLabels;
     }
 }
