@@ -27,6 +27,7 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.TextView;
 
+import com.google.android.gms.maps.CameraUpdate;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapView;
@@ -174,9 +175,9 @@ public class MapFragment extends Fragment implements OnMapReadyCallback{
             MarkerOptions op = new MarkerOptions();
             op.title("Current Location");
             op.position(latLng);
-            Bitmap bMap = BitmapFactory.decodeResource(getResources(), R.drawable.mylocmap);
+            /*Bitmap bMap = BitmapFactory.decodeResource(getResources(), R.drawable.mylocmap);
             Bitmap bMapScaled = Bitmap.createScaledBitmap(bMap, dpToPx(32.0F), dpToPx(32.0F), true);
-            op.icon(BitmapDescriptorFactory.fromBitmap(bMapScaled));
+            op.icon(BitmapDescriptorFactory.fromBitmap(bMapScaled));*/
             mLocationMarker = googleMap.addMarker(op);
         } else {
             mLocationMarker.setPosition(latLng);
@@ -206,9 +207,13 @@ public class MapFragment extends Fragment implements OnMapReadyCallback{
         Vertex closest = LandingPage.getNearestVertex(mapLoc.x,mapLoc.y,0,960,vertexMap);
 
         ArrayList<String> labelsList = closest.getLabels();
-        if(labelsList != null) {
+        if(labelsList != null && labelsList.size() != 0) {
             String topLabel = labelsList.get(0);
             Log.d("Closest Point:", topLabel.toString());
+
+            //LatLng ll = new LatLng(la);
+            CameraUpdate cameraUpdate = CameraUpdateFactory.newLatLngZoom(latLng, 1);
+            googleMap.animateCamera(cameraUpdate);
 
             searchString = topLabel;
             LandingPage.toClosestVertex = closest;

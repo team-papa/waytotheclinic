@@ -436,7 +436,7 @@ public class LandingPage  extends AppCompatActivity implements LocationFragment.
         });
     }
 
-    
+
     @Override
     public void onStop() {
         // Remember the recent searches
