@@ -33,6 +33,7 @@ import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapView;
 import com.google.android.gms.maps.MapsInitializer;
 import com.google.android.gms.maps.OnMapReadyCallback;
+import com.google.android.gms.maps.model.CircleOptions;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
@@ -337,6 +338,25 @@ public class MapFragment extends Fragment implements OnMapReadyCallback{
         return new Point(x, y, floor);
     }
 
+    public void setLocation(Point loc){
+
+        locTileProvider.setLocation(loc);
+
+        googleMap.addMarker( new MarkerOptions()
+                .title("Current Location")
+                .position( new LatLng( loc.x, loc.y ))
+        );
+        /*googleMap.setOnCameraMoveListener(new GoogleMap.OnCameraMoveListener() {
+            @Override
+            public void onCameraMove() {
+                Log.d("MapFragment", googleMap.getCameraPosition().toString());
+            }
+        });*/
+
+        //invalidate cache to cause update
+        locOverlay.clearTileCache();
+        mapView.invalidate();
+    }
 
     //region android boilerplate to get mapView working
 
