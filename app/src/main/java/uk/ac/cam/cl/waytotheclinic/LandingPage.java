@@ -751,12 +751,13 @@ public class LandingPage  extends AppCompatActivity implements LocationFragment.
         else if (event.sensor == mMagnetometer) {
             System.arraycopy(event.values, 0, mMagnetometerReading,
                     0, mMagnetometerReading.length);
-        } else if (event.sensor == mStepCounter) {
+        }
+        /*else if (event.sensor == mStepCounter) {
             for(Float fl : event.values) {
                 Log.d("values: ", fl.toString());
             }
-        }
-        //updateOrientationAngles();
+        }*/
+        updateOrientationAngles();
     }
 
     // Compute the three orientation angles based on the most recent readings from
@@ -774,8 +775,8 @@ public class LandingPage  extends AppCompatActivity implements LocationFragment.
 
         mBearing = mOrientationAngles[0];
         Boolean check = hasChangedDirection();
-        Log.d("Angle: ", mBearing.toString());
-        Log.d("Changed: ", check.toString());
+        //Log.d("Angle: ", mBearing.toString());
+        //Log.d("Changed: ", check.toString());
     }
 
     public boolean hasChangedDirection() {
