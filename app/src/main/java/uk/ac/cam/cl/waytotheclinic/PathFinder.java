@@ -88,9 +88,24 @@ public class PathFinder {
 
         // add all places you walk past on a straight to the list
         ArrayList<String> straightLabelList = new ArrayList<>();
+
+        Edge lastedge = null;
         for (Edge e : path) {
 
+            // If it's stairs of lift then say so
             if (e.getInVertex().getZ() != e.getOutVertex().getZ()) {
+
+                if (!flushStraightLabelList(straightLabelList).equals("")) {
+                    textDirection += flushStraightLabelList(straightLabelList);
+
+                    directions.add(new Instruction(R.drawable.straight, textDirection));
+                    whichEdge.add(lastedge);
+
+                    textDirection = "";
+                    straightLabelList.clear();
+                    assert (straightLabelList.size() == 0);
+                }
+
                 if (e.isStairs()) {
                     // Only add the last direction of where to take the stairs in this stairwell
                     // This turns this                         into this
@@ -104,12 +119,12 @@ public class PathFinder {
                     }
                     directions.add(new Instruction(R.drawable.stairs,
                             "Take the stairs to level " + (e.getOutVertex().getZ() + 1)));
-                    whichEdge.add(e);
                 } else {
                     directions.add(new Instruction(R.drawable.lift,
                             "Take the lift to level " + (e.getOutVertex().getZ() + 1)));
-                    whichEdge.add(e);
                 }
+                whichEdge.add(e);
+
             } else {
 
                 double newAngle = e.getAngle();
@@ -122,9 +137,9 @@ public class PathFinder {
 
                 if (Math.abs(diffAngle) == 180) {
                     turnType = TurnType.UTURN;
-                } else if (diffAngle > 180 && diffAngle < 360 && diffAngle == 270 ) {
+                } else if (diffAngle == 270 ) {
                     turnType = TurnType.LEFT;
-                } else if (diffAngle > 0 && diffAngle < 180 && diffAngle == 90) {
+                } else if (diffAngle == 90) {
                     turnType = TurnType.RIGHT;
                 } else {
                     turnType = TurnType.STRAIGHT;
@@ -135,46 +150,49 @@ public class PathFinder {
                 String placeName = (labels.size() > 0) ? labels.get(0) : "";
 
                 if (turnType != TurnType.STRAIGHT) {
-                    // flush last instruction if needed
-                    if (straightLabelList.size() > 0) {
-                        for (int i = 0; i < straightLabelList.size(); i++) {
-                            String label = straightLabelList.get(i);
-                            if (label != null && !label.equals("")) {
-                                if (i != straightLabelList.size() - 1) {
-                                    textDirection += " past the " + label + ",";
-                                } else {
-                                    textDirection += " towards the " + label;
-                                }
-                            }
-                        }
-
-                        // remove trailing comma
-                        textDirection = textDirection.replaceAll(",$", "");
+                    if (!flushStraightLabelList(straightLabelList).equals("")) {
+                        textDirection += flushStraightLabelList(straightLabelList);
 
                         directions.add(new Instruction(R.drawable.straight, textDirection));
                         whichEdge.add(e);
 
+                        textDirection = "";
                         straightLabelList.clear();
                         assert (straightLabelList.size() == 0);
                     }
 
                     int icon = 1;
 
-                    switch (turnType) {
-                        case UTURN:
-                            icon = R.drawable.uturn;
-                            textDirection = "Turn around";
-                            break;
+                    if (lastedge != null && (lastedge.getInVertex().getZ() != lastedge.getOutVertex().getZ())) {
 
-                        case LEFT:
-                            icon = R.drawable.left;
-                            textDirection = "Turn left";
-                            break;
+                        if (lastedge.getOutVertex().getZ() < 3) {
+                            icon = R.drawable.mylocmap;
+                            textDirection = "Switch to the Level " + (lastedge.getOutVertex().getZ() + 1) +
+                                    " maps using the sidebar";
+                            directions.add(new Instruction(icon, textDirection));
+                            whichEdge.add(e);
+                        }
 
-                        case RIGHT:
-                            icon = R.drawable.right;
-                            textDirection = "Turn right";
-                            break;
+                        textDirection = "Turn";
+                        icon = R.drawable.straight;
+
+                    } else {
+                        switch (turnType) {
+                            case UTURN:
+                                icon = R.drawable.uturn;
+                                textDirection = "Turn around";
+                                break;
+
+                            case LEFT:
+                                icon = R.drawable.left;
+                                textDirection = "Turn left";
+                                break;
+
+                            case RIGHT:
+                                icon = R.drawable.right;
+                                textDirection = "Turn right";
+                                break;
+                        }
                     }
 
                     if (!placeName.equals("")) {
@@ -194,13 +212,38 @@ public class PathFinder {
                 // point towards new direction
                 orientAngle = newAngle;
             }
-
+            lastedge = e;
         }
-
-        directions.add(new Instruction(R.drawable.destination, "You have arrived at your destination!"));
-
+        if (!flushStraightLabelList(straightLabelList).equals("")) {
+            directions.add(new Instruction(R.drawable.straight, "Go straight" + flushStraightLabelList(straightLabelList)));
+        }
+        directions.add(new Instruction(R.drawable.destination, "You have arrived at your destination"));
 
         return new Pair<>(directions, whichEdge);
+    }
+
+    private static String flushStraightLabelList(List<String> straightLabelList) {
+
+        String textDirection = "";
+        // flush last instruction if needed
+        if (straightLabelList.size() > 0) {
+            for (int i = 0; i < straightLabelList.size(); i++) {
+                String label = straightLabelList.get(i);
+                if (label != null && !label.equals("")) {
+                    if (i != straightLabelList.size() - 1) {
+                        textDirection += " past the " + label + ",";
+                    } else {
+                        textDirection += " towards the " + label;
+                    }
+                }
+            }
+
+            // remove trailing comma
+            textDirection = textDirection.replaceAll(",$", "");
+
+        }
+        return textDirection;
+
     }
 
 
