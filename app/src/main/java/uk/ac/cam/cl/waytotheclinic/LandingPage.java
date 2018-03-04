@@ -204,10 +204,10 @@ public class LandingPage  extends AppCompatActivity implements LocationFragment.
         }
 
         // Keys used in Hashmap
-        final String[] from = { "name","icon"};
+        final String[] from = {"name","icon"};
 
         // Ids of views in listview_layout
-        final int[] to = { R.id.name, R.id.icon};
+        final int[] to = {R.id.name, R.id.icon};
 
         LocationFragment locationFragment = new LocationFragment();
 
@@ -253,7 +253,6 @@ public class LandingPage  extends AppCompatActivity implements LocationFragment.
                     clickedLocationMarker.setPosition(latLng);
                 }
 
-
                 // Make bottom bar containing ->DIRECTIONS button appear
                 bottom_white_box.setVisibility(View.VISIBLE);
                 ae_button.setVisibility(View.INVISIBLE);
@@ -273,8 +272,6 @@ public class LandingPage  extends AppCompatActivity implements LocationFragment.
             }
         };
         search_box.setOnItemClickListener(itemClickListener);
-
-
 
         // On click, the menu button opens the side menu and closes the keyboard (if open)
         menu_button.setOnClickListener(new View.OnClickListener() {
