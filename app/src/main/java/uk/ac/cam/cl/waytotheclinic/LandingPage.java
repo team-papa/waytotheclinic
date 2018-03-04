@@ -68,6 +68,8 @@ import com.google.android.gms.location.LocationResult;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.maps.CameraUpdate;
 import com.google.android.gms.maps.CameraUpdateFactory;
+import com.google.android.gms.maps.model.IndoorBuilding;
+import com.google.android.gms.maps.model.IndoorLevel;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.tasks.OnSuccessListener;
 
@@ -751,32 +753,67 @@ public class LandingPage  extends AppCompatActivity implements LocationFragment.
         Double lat = l.getLatitude();
         Double lon = l.getLongitude();
         Float acc = l.getAccuracy();
+
         latText.setText(lat.toString());
         lonText.setText(lon.toString());
         accText.setText(acc.toString());
 
-        //LatLng loc = new LatLng(lat,lon);
-        LatLng loc = new LatLng(52.1748719,0.1401977);
+        LatLng loc = new LatLng(lat,lon);
+        //LatLng loc = new LatLng(52.1748719,0.1401977);
+        //LatLng loc = new LatLng(52.173154,0.138020);     // (902, 362)
+        //LatLng loc = new LatLng(52.175751,0.143265);     // (176, 562)
+        //LatLng loc = new LatLng(52.174559,0.143382);     // (262, 361)
+        //LatLng loc = new LatLng(52.174178,0.137068);     // (910, 573)
+        //LatLng loc = new LatLng(52.175563,0.143159);     // (203, 536)
 
-        MapFragment.Point x0 = rotatePoint(new MapFragment.Point(902,362,0));
+        Double theta = 155.0;
+
+        MapFragment.Point x0 = rotatePoint(new MapFragment.Point(902.0/960.0,362.0/960.0,0),theta);
         MapFragment.Point y0 = mapFragment.fromLatLngToPoint(new LatLng(52.173154,0.138020));
-        MapFragment.Point x1 = rotatePoint(new MapFragment.Point(176,562,0));
+        MapFragment.Point x1 = rotatePoint(new MapFragment.Point(176.0/960.0,562.0/960.0,0),theta);
         MapFragment.Point y1 = mapFragment.fromLatLngToPoint(new LatLng(52.175751,0.143265));
 
         MapFragment.Point y = mapFragment.fromLatLngToPoint(loc);
         MapFragment.Point x = new MapFragment.Point(0,0,0);
 
         x.x = (x0.x * (y1.x - y.x) + x1.x * (y.x - y0.x)) / (y1.x - y0.x);
-        x.y = (y0.x * (x1.x - x.x) + y1.x * (x.x - x0.x)) / (x1.x - x0.x);
+        x.y = (x0.y * (y1.y - y.y) + x1.y * (y.y - y0.y)) / (y1.y - y0.y);
+
+        MapFragment.Point rotatedX = rotatePoint(x,-theta);
+
+        Double xs = rotatedX.x*960;
+        Double ys = rotatedX.y*960;
+
+        Log.d("Test", xs + " " + ys);
+        LatLng ll = mapFragment.fromPointToLatLng(rotatedX);
+        mapFragment.setLocation(ll);
+
+
+        /*LatLng x0 = rotatePoint(mapFragment.fromPointToLatLng(new MapFragment.Point(902.0/960.0,362.0/960.0,0)),theta);
+        LatLng y0 = new LatLng(52.173154,0.138020);
+        LatLng x1 = rotatePoint(mapFragment.fromPointToLatLng(new MapFragment.Point(176.0/960.0,562.0/960.0,0)),theta);
+        LatLng y1 = new LatLng(52.175751,0.143265);
+
+        LatLng y = loc;
+        LatLng x = new LatLng(
+        (x0.latitude * (y1.latitude - y.latitude) + x1.latitude * (y.latitude - y0.latitude)) / (y1.latitude - y0.latitude),
+        (x0.longitude * (y1.longitude - y.longitude) + x1.longitude * (y.longitude - y0.longitude)) / (y1.longitude - y0.longitude));
+
+        LatLng rotatedX = rotatePoint(x,-theta);
+
+        MapFragment.Point rotatedPoint = mapFragment.fromLatLngToPoint(rotatedX);
+
+        Double xs = rotatedPoint.x*960;
+        Double ys = rotatedPoint.y*960;
+
+        Log.d("Test", xs + " " + ys);
+        mapFragment.setLocation(rotatedX);*/
 
         // Floor number is altitude when we have data from WiFi
         // int floor = (int) l.getAltitude();
-
-        LatLng ll = mapFragment.fromPointToLatLng(x);
-        mapFragment.setLocation(ll);
     }
 
-    public MapFragment.Point rotatePoint(MapFragment.Point initialPt) {
+    public MapFragment.Point rotatePoint(MapFragment.Point initialPt, Double theta) {
 
         //Double theta = Math.atan((realY*x-realX*y)/(realX*x-realY*y));
         //Double thetaDeg = Math.toDegrees(theta);
@@ -785,12 +822,32 @@ public class LandingPage  extends AppCompatActivity implements LocationFragment.
         Double x = initialPt.x;
         Double y = initialPt.y;
 
-        Double x1 = x*Math.cos(170) - y*Math.sin(170);
-        Double y1 = x*Math.sin(170) + y*Math.cos(170);
-        Log.d("Rotated x", x1.toString());
-        Log.d("Rotated y", y1.toString());
+        Double thetaRad = Math.toRadians(theta);
+
+        Double x1 = x*Math.cos(thetaRad) - y*Math.sin(thetaRad);
+        Double y1 = x*Math.sin(thetaRad) + y*Math.cos(thetaRad);
+        //Log.d("Rotated x", x1.toString());
+        //Log.d("Rotated y", y1.toString());
 
         MapFragment.Point rotated = new MapFragment.Point(x1,y1,0);
+
+        return rotated;
+
+    }
+
+    public LatLng rotatePoint(LatLng initialPt, Double theta) {
+
+        Double x = initialPt.latitude;
+        Double y = initialPt.longitude;
+
+        Double thetaRad = Math.toRadians(theta);
+
+        Double x1 = x*Math.cos(thetaRad) - y*Math.sin(thetaRad);
+        Double y1 = x*Math.sin(thetaRad) + y*Math.cos(thetaRad);
+        //Log.d("Rotated x", x1.toString());
+        //Log.d("Rotated y", y1.toString());
+
+        LatLng rotated = new LatLng(x1,y1);
 
         return rotated;
 
