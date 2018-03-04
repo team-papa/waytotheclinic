@@ -143,6 +143,9 @@ public class MapFragment extends Fragment implements OnMapReadyCallback{
         // Set initial floor to floor 2.
         this.setFloor(2);
 
+        LatLng locLatLng = fromPointToLatLng(new MapFragment.Point(203.0/960.0, 536.0/960.0,1));
+        LandingPage.myLocation = new MapFragment.Point(locLatLng.latitude,locLatLng.longitude,1);
+        setLocation(locLatLng);
 
         // When the map is pressed, a position in longitude/latitude for the click is returned.
         googleMap.setOnMapLongClickListener(new GoogleMap.OnMapLongClickListener() {
@@ -158,49 +161,61 @@ public class MapFragment extends Fragment implements OnMapReadyCallback{
         });
     }
 
+
+    // Update the location marker on map with the new location data
     public void setLocation(LatLng latLng){
 
-        if (LandingPage.myLocationMarker == null) {
+        if (LandingPage.myLocationMarker == null) {  // Only create new location marker once
 
-            Log.d("Location", "Set");
+            // Create new location marker
             MarkerOptions op = new MarkerOptions();
             op.position(latLng);
-
             Bitmap bMap = BitmapFactory.decodeResource(getResources(), R.drawable.mylocmap);
             Bitmap bMapScaled = Bitmap.createScaledBitmap(bMap, dpToPx(32.0F), dpToPx(32.0F), true);
             op.icon(BitmapDescriptorFactory.fromBitmap(bMapScaled));
             LandingPage.myLocationMarker = googleMap.addMarker(op);
+
+            // Pan camera to centre on location, since it is the first time
             CameraUpdate cameraUpdate = CameraUpdateFactory.newLatLngZoom(latLng, 1);
             googleMap.animateCamera(cameraUpdate);
+
         } else {
+
+            // Change position of old location marker
+            // Don't pan camera, as it would not be a good user experience for the camera
+            // to pan on every update
             LandingPage.myLocationMarker.setPosition(latLng);
         }
 
         LandingPage.setCurrentLocation(new Point(latLng.latitude,latLng.longitude,1));
     }
 
+
+    // Update the destination marker to the new destination
     public void setDestination(LatLng latLng){
 
-        locTileProvider.setLocation(new Point(latLng.latitude,latLng.longitude,0));
+        if (LandingPage.clickedLocationMarker == null) {  // Only create new location marker once
 
-        if (LandingPage.clickedLocationMarker == null) {
+            // Create new destination marker
             MarkerOptions op = new MarkerOptions();
             op.title("Current Location");
             op.position(latLng);
+            Bitmap bMap = BitmapFactory.decodeResource(getResources(), R.drawable.clicked_loc_marker);
+            Bitmap bMapScaled = Bitmap.createScaledBitmap(bMap, dpToPx(32.0F), dpToPx(32.0F), true);
+            op.icon(BitmapDescriptorFactory.fromBitmap(bMapScaled));
+
             LandingPage.clickedLocationMarker = googleMap.addMarker(op);
         } else {
+
+            // Change position of old destination marker
             LandingPage.clickedLocationMarker.setPosition(latLng);
         }
 
-        // We currently have a LatLng in lat/long coordinates
-        Log.d("Initial LatLng:", latLng.latitude + " " + latLng.longitude);
-
-        // We must convert this to a Point in map coordinates [0,1]
-
+        // Convert from lat/long coordinates, to map coordinates which we can work with
         Point mapLoc = fromLatLngToPoint(latLng);
 
 
-        // Call getNearestVertex
+        // Find the closest vertex to the clicked point
         Context context = getActivity().getApplicationContext();
         HashSet<Vertex> vertexSet = (HashSet<Vertex>) LocationsProvider.generateVertices(context);
         HashMap<Vertex,Vertex> vertexMap = new HashMap<>();
@@ -213,9 +228,12 @@ public class MapFragment extends Fragment implements OnMapReadyCallback{
 
         ArrayList<String> labelsList = closest.getLabels();
         if(labelsList != null && labelsList.size() != 0) {
+
+            // If multiple labels, use the first
             String topLabel = labelsList.get(0);
             Log.d("Closest Point:", topLabel.toString());
 
+            // Pan camera to centre on the selected destination
             CameraUpdate cameraUpdate = CameraUpdateFactory.newLatLngZoom(latLng, 1);
             googleMap.animateCamera(cameraUpdate);
 
@@ -240,8 +258,9 @@ public class MapFragment extends Fragment implements OnMapReadyCallback{
             InputMethodManager imm = (InputMethodManager) context.getSystemService(Context.INPUT_METHOD_SERVICE);
             imm.hideSoftInputFromWindow(getActivity().getCurrentFocus().getWindowToken(), 0);
 
+            // On button click, get directions to destination
             search_term.setText(searchString);
-            directions.setOnClickListener(new View.OnClickListener(){
+            directions.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
                     Intent intent = new Intent(getActivity().getBaseContext(), DirectionsPage.class);
@@ -249,18 +268,18 @@ public class MapFragment extends Fragment implements OnMapReadyCallback{
                 }
             });
         }
-
-        //invalidate cache to cause update
-        locOverlay.clearTileCache();
-        mapView.invalidate();
     }
 
+    // Convert from latitude/longitude coordinates to map coordinates
+    // Use formula corresponding to mercator projection
     public static Point fromLatLngToPoint(LatLng latLng) {
         Double x = (latLng.longitude + 180) / 360;
         Double y = ((1 - Math.log(Math.tan(latLng.latitude * Math.PI / 180) + 1 / Math.cos(latLng.latitude * Math.PI / 180)) / Math.PI) / 2);
         return new Point(x, y, 0);
     };
 
+    // Convert from map coordinates to latitude/longitude coordinates
+    // Use formula corresponding to the inverse of the mercator projection
     public static LatLng fromPointToLatLng(Point point){
         Double lng = point.x * 360 - 180;
         Double n = Math.PI - 2 * Math.PI * point.y;
@@ -332,7 +351,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback{
 //            pathOverlay.clearTileCache();
         }
 
-        final int edgeZOffset = 2;
+        final int edgeZOffset = 1;
 
         List<Point> result = new ArrayList<>();
         if(edgePath.size() == 0)
@@ -348,6 +367,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback{
         setPath(result);
     }
 
+    // Get map coordinates and floor from Vertex, and return a Point
     public static Point getPointFromVertex(Vertex v, int ZOffset, double imgSize){
         double x = ((double)v.getX())/imgSize;
         double y = ((double)v.getY())/imgSize;

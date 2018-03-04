@@ -81,7 +81,6 @@ public class DirectionsPage extends LandingPage {
         drawer_layout_dir = findViewById(R.id.drawer_layout_dir);
         NavigationView nav_view = findViewById(R.id.nav_view_dir);
 
-
         // If we're here because of triple click on AE button
         if(getIntent().getBooleanExtra("ae", false)) {
             new Handler().postDelayed(new Runnable() {
@@ -187,7 +186,6 @@ public class DirectionsPage extends LandingPage {
         from_box.setOnTouchListener(touchy);
         to_box.setOnTouchListener(touchy);
 
-
         // Make search boxes react to choices of user
         AdapterView.OnItemClickListener fromItemClickListener = new AdapterView.OnItemClickListener() {
             @Override
@@ -284,6 +282,7 @@ public class DirectionsPage extends LandingPage {
                 map_fragment_dir.googleMap.animateCamera(cameraUpdate);
             }
         });
+
 
     }
 
