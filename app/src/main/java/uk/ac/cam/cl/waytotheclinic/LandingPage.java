@@ -484,7 +484,6 @@ public class LandingPage  extends AppCompatActivity implements LocationFragment.
         mMagnetometer = mSensorManager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD);
         mBearingQueue = new LinkedList<>();
         mBearingQueue.offer(new Float(0.0));
-        mStepCounter = mSensorManager.getDefaultSensor(Sensor.TYPE_STEP_DETECTOR);
     }
 
 
@@ -786,14 +785,12 @@ public class LandingPage  extends AppCompatActivity implements LocationFragment.
         Float acc = l.getAccuracy();
 
         LatLng loc = new LatLng(lat,lon);
-        //LatLng loc = new LatLng(52.1748719,0.1401977);
-        //LatLng loc = new LatLng(52.173154,0.138020);     // (902, 362)
-        //LatLng loc = new LatLng(52.175751,0.143265);     // (176, 562)
-        //LatLng loc = new LatLng(52.174559,0.143382);     // (262, 361)
-        //LatLng loc = new LatLng(52.174178,0.137068);     // (910, 573)
-        //LatLng loc = new LatLng(52.175563,0.143159);     // (203, 536)
 
+        // Set estimated angle of rotation of map
+        // This was determined experimentally, rather through any exact calculation
         Double theta = 155.0;
+
+        // Rotate points to real-world orientation
 
         MapFragment.Point x0 = rotatePoint(new MapFragment.Point(902.0/960.0,362.0/960.0,0),theta);
         MapFragment.Point y0 = map_fragment.fromLatLngToPoint(new LatLng(52.173154,0.138020));
@@ -803,18 +800,26 @@ public class LandingPage  extends AppCompatActivity implements LocationFragment.
         MapFragment.Point y = map_fragment.fromLatLngToPoint(loc);
         MapFragment.Point x = new MapFragment.Point(0,0,0);
 
+        // Use linear interpolation with two known transformations.
+        // Given the latitude/longitude of location, get the corresponding map point
+
         x.x = (x0.x * (y1.x - y.x) + x1.x * (y.x - y0.x)) / (y1.x - y0.x);
         x.y = (x0.y * (y1.y - y.y) + x1.y * (y.y - y0.y)) / (y1.y - y0.y);
 
+        // Rotate point back to map orientation
         MapFragment.Point rotatedX = rotatePoint(x,-theta);
 
         Double xs = rotatedX.x;
         Double ys = rotatedX.y;
 
-        Log.d("Test", xs + " " + ys);
         LatLng ll = map_fragment.fromPointToLatLng(rotatedX);
+
+        // Experimentally determined translation to fine tune transformation
+        // Further testing is need to identify the exact transformation
+        // This works to within a couple of metres
         LatLng lla = new LatLng(ll.latitude + 4.0,ll.longitude + 7.0);
 
+        // If user is not in proximity of hospital, don't attempt to update location
         if (xs >= 0 && xs <= 1 && ys >= 0 && ys <= 1) {
             map_fragment.setLocation(lla);
         }
@@ -822,28 +827,10 @@ public class LandingPage  extends AppCompatActivity implements LocationFragment.
             // Deal with location not in range
         }
 
-        /*LatLng x0 = rotatePoint(mapFragment.fromPointToLatLng(new MapFragment.Point(902.0/960.0,362.0/960.0,0)),theta);
-        LatLng y0 = new LatLng(52.173154,0.138020);
-        LatLng x1 = rotatePoint(mapFragment.fromPointToLatLng(new MapFragment.Point(176.0/960.0,562.0/960.0,0)),theta);
-        LatLng y1 = new LatLng(52.175751,0.143265);
-
-        LatLng y = loc;
-        LatLng x = new LatLng(
-        (x0.latitude * (y1.latitude - y.latitude) + x1.latitude * (y.latitude - y0.latitude)) / (y1.latitude - y0.latitude),
-        (x0.longitude * (y1.longitude - y.longitude) + x1.longitude * (y.longitude - y0.longitude)) / (y1.longitude - y0.longitude));
-
-        LatLng rotatedX = rotatePoint(x,-theta);
-
-        MapFragment.Point rotatedPoint = mapFragment.fromLatLngToPoint(rotatedX);
-
-        Double xs = rotatedPoint.x*960;
-        Double ys = rotatedPoint.y*960;
-
-        Log.d("Test", xs + " " + ys);
-        mapFragment.setLocation(rotatedX);*/
-
     }
 
+    // Apply a rotation transformation to a coordinate point
+    // Used to transform point from real-world to map coordinate systems
     public MapFragment.Point rotatePoint(MapFragment.Point initialPt, Double theta) {
 
         Double x = initialPt.x;
@@ -853,8 +840,6 @@ public class LandingPage  extends AppCompatActivity implements LocationFragment.
 
         Double x1 = x*Math.cos(thetaRad) - y*Math.sin(thetaRad);
         Double y1 = x*Math.sin(thetaRad) + y*Math.cos(thetaRad);
-        //Log.d("Rotated x", x1.toString());
-        //Log.d("Rotated y", y1.toString());
 
         MapFragment.Point rotated = new MapFragment.Point(x1,y1,0);
 
@@ -862,6 +847,7 @@ public class LandingPage  extends AppCompatActivity implements LocationFragment.
 
     }
 
+    // Use if need to rotate a point in latitude/longitude form
     public LatLng rotatePoint(LatLng initialPt, Double theta) {
 
         Double x = initialPt.latitude;
@@ -877,7 +863,6 @@ public class LandingPage  extends AppCompatActivity implements LocationFragment.
         LatLng rotated = new LatLng(x1,y1);
 
         return rotated;
-
     }
 
     public static void setCurrentLocation(MapFragment.Point p) {
@@ -918,6 +903,7 @@ public class LandingPage  extends AppCompatActivity implements LocationFragment.
         // Do something here if sensor accuracy changes.
     }
 
+    // Called if device detects a sensor change
     @Override
     public void onSensorChanged(SensorEvent event) {
         if (event.sensor == mAccelerometer) {
@@ -928,11 +914,6 @@ public class LandingPage  extends AppCompatActivity implements LocationFragment.
             System.arraycopy(event.values, 0, mMagnetometerReading,
                     0, mMagnetometerReading.length);
         }
-        /*else if (event.sensor == mStepCounter) {
-            for(Float fl : event.values) {
-                Log.d("values: ", fl.toString());
-            }
-        }*/
         updateOrientationAngles();
     }
 
@@ -951,10 +932,9 @@ public class LandingPage  extends AppCompatActivity implements LocationFragment.
 
         mBearing = mOrientationAngles[0];
         Boolean check = hasChangedDirection();
-        //Log.d("Angle: ", mBearing.toString());
-        //Log.d("Changed: ", check.toString());
     }
 
+    // Check if user has changed direction noticeably in the last 100 sensor updates
     public boolean hasChangedDirection() {
         if(mBearingQueue.size() >= 100) {
             mBearingQueue.poll();
