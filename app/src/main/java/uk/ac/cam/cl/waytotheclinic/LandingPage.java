@@ -68,6 +68,7 @@ import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 
 import static uk.ac.cam.cl.waytotheclinic.MapFragment.fromLatLngToPoint;
+import static uk.ac.cam.cl.waytotheclinic.MapFragment.fromPointToLatLng;
 import static uk.ac.cam.cl.waytotheclinic.VertexComparator.ManhattanDistance2D;
 
 public class LandingPage  extends AppCompatActivity implements LocationFragment.LocationListener, NavigationView.OnNavigationItemSelectedListener,
@@ -112,7 +113,7 @@ public class LandingPage  extends AppCompatActivity implements LocationFragment.
     static Vertex toClosestVertex;
     static String searchString;
 
-    public static MapFragment.Point myLocation = new MapFragment.Point(26, 98.6,2);
+    public static MapFragment.Point myLocation;
     public static Marker myLocationMarker;
     public static MapFragment.Point clickedLocation;
     public static Marker clickedLocationMarker;
@@ -477,6 +478,7 @@ public class LandingPage  extends AppCompatActivity implements LocationFragment.
                     return true;
                 }
         });
+
         mSensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
         mAccelerometer = mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
         mMagnetometer = mSensorManager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD);

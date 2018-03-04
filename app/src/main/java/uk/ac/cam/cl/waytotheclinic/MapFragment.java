@@ -143,6 +143,9 @@ public class MapFragment extends Fragment implements OnMapReadyCallback{
         // Set initial floor to floor 2.
         this.setFloor(2);
 
+        LatLng locLatLng = fromPointToLatLng(new MapFragment.Point(203.0/960.0, 536.0/960.0,1));
+        LandingPage.myLocation = new MapFragment.Point(locLatLng.latitude,locLatLng.longitude,1);
+        setLocation(locLatLng);
 
         // When the map is pressed, a position in longitude/latitude for the click is returned.
         googleMap.setOnMapLongClickListener(new GoogleMap.OnMapLongClickListener() {
