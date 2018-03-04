@@ -59,6 +59,7 @@ import java.util.TreeSet;
 
 import com.google.android.gms.location.LocationCallback;
 import com.google.android.gms.location.LocationRequest;
+import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.maps.CameraUpdate;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
@@ -112,7 +113,7 @@ public class LandingPage  extends AppCompatActivity implements LocationFragment.
     static String searchString;
 
     public static MapFragment.Point myLocation = new MapFragment.Point(26, 98.6,2);;
-    private Marker myLocationMarker;
+    public static Marker myLocationMarker;
     public static MapFragment.Point clickedLocation;
     public static Marker clickedLocationMarker;
 
@@ -770,23 +771,115 @@ public class LandingPage  extends AppCompatActivity implements LocationFragment.
 
     @Override
     public void startLocationUpdates(LocationRequest lr, LocationCallback lc) {
-//        LocationServices.getFusedLocationProviderClient(this).requestLocationUpdates(lr, lc, null);
+        LocationServices.getFusedLocationProviderClient(this).requestLocationUpdates(lr, lc, null);
     }
 
     @Override
     public void updateLocation(Location l) {
 
-        //myLocation = l;
         Log.i("waytotheclinic", "waytotheclinic location updated: " + l.toString());
 
-        double x = (l.getLatitude() - 52.173154) / (52.175751 - 52.173154) * (902 - 176) + 176;
-        double y = (l.getLongitude() - 0.138020) / (0.143265 - 0.138020) * (562 - 362) + 562;
-        // Floor number is altitude when we have data from WiFi
-        // int floor = (int) l.getAltitude();
+        Double lat = l.getLatitude();
+        Double lon = l.getLongitude();
+        Float acc = l.getAccuracy();
 
-        MapFragment.Point p = new MapFragment.Point(x, y, 0);
-        //map_fragment.setLocation(p);
-        //map_fragment.setLocation(new MapFragment.Point(26, 98.6, 0));
+        LatLng loc = new LatLng(lat,lon);
+        //LatLng loc = new LatLng(52.1748719,0.1401977);
+        //LatLng loc = new LatLng(52.173154,0.138020);     // (902, 362)
+        //LatLng loc = new LatLng(52.175751,0.143265);     // (176, 562)
+        //LatLng loc = new LatLng(52.174559,0.143382);     // (262, 361)
+        //LatLng loc = new LatLng(52.174178,0.137068);     // (910, 573)
+        //LatLng loc = new LatLng(52.175563,0.143159);     // (203, 536)
+
+        Double theta = 155.0;
+
+        MapFragment.Point x0 = rotatePoint(new MapFragment.Point(902.0/960.0,362.0/960.0,0),theta);
+        MapFragment.Point y0 = map_fragment.fromLatLngToPoint(new LatLng(52.173154,0.138020));
+        MapFragment.Point x1 = rotatePoint(new MapFragment.Point(176.0/960.0,562.0/960.0,0),theta);
+        MapFragment.Point y1 = map_fragment.fromLatLngToPoint(new LatLng(52.175751,0.143265));
+
+        MapFragment.Point y = map_fragment.fromLatLngToPoint(loc);
+        MapFragment.Point x = new MapFragment.Point(0,0,0);
+
+        x.x = (x0.x * (y1.x - y.x) + x1.x * (y.x - y0.x)) / (y1.x - y0.x);
+        x.y = (x0.y * (y1.y - y.y) + x1.y * (y.y - y0.y)) / (y1.y - y0.y);
+
+        MapFragment.Point rotatedX = rotatePoint(x,-theta);
+
+        Double xs = rotatedX.x;
+        Double ys = rotatedX.y;
+
+        Log.d("Test", xs + " " + ys);
+        LatLng ll = map_fragment.fromPointToLatLng(rotatedX);
+        LatLng lla = new LatLng(ll.latitude + 4.0,ll.longitude + 7.0);
+
+        if (xs >= 0 && xs <= 1 && ys >= 0 && ys <= 1) {
+            map_fragment.setLocation(lla);
+        }
+        else {
+            // Deal with location not in range
+        }
+
+        /*LatLng x0 = rotatePoint(mapFragment.fromPointToLatLng(new MapFragment.Point(902.0/960.0,362.0/960.0,0)),theta);
+        LatLng y0 = new LatLng(52.173154,0.138020);
+        LatLng x1 = rotatePoint(mapFragment.fromPointToLatLng(new MapFragment.Point(176.0/960.0,562.0/960.0,0)),theta);
+        LatLng y1 = new LatLng(52.175751,0.143265);
+
+        LatLng y = loc;
+        LatLng x = new LatLng(
+        (x0.latitude * (y1.latitude - y.latitude) + x1.latitude * (y.latitude - y0.latitude)) / (y1.latitude - y0.latitude),
+        (x0.longitude * (y1.longitude - y.longitude) + x1.longitude * (y.longitude - y0.longitude)) / (y1.longitude - y0.longitude));
+
+        LatLng rotatedX = rotatePoint(x,-theta);
+
+        MapFragment.Point rotatedPoint = mapFragment.fromLatLngToPoint(rotatedX);
+
+        Double xs = rotatedPoint.x*960;
+        Double ys = rotatedPoint.y*960;
+
+        Log.d("Test", xs + " " + ys);
+        mapFragment.setLocation(rotatedX);*/
+
+    }
+
+    public MapFragment.Point rotatePoint(MapFragment.Point initialPt, Double theta) {
+
+        Double x = initialPt.x;
+        Double y = initialPt.y;
+
+        Double thetaRad = Math.toRadians(theta);
+
+        Double x1 = x*Math.cos(thetaRad) - y*Math.sin(thetaRad);
+        Double y1 = x*Math.sin(thetaRad) + y*Math.cos(thetaRad);
+        //Log.d("Rotated x", x1.toString());
+        //Log.d("Rotated y", y1.toString());
+
+        MapFragment.Point rotated = new MapFragment.Point(x1,y1,0);
+
+        return rotated;
+
+    }
+
+    public LatLng rotatePoint(LatLng initialPt, Double theta) {
+
+        Double x = initialPt.latitude;
+        Double y = initialPt.longitude;
+
+        Double thetaRad = Math.toRadians(theta);
+
+        Double x1 = x*Math.cos(thetaRad) - y*Math.sin(thetaRad);
+        Double y1 = x*Math.sin(thetaRad) + y*Math.cos(thetaRad);
+        //Log.d("Rotated x", x1.toString());
+        //Log.d("Rotated y", y1.toString());
+
+        LatLng rotated = new LatLng(x1,y1);
+
+        return rotated;
+
+    }
+
+    public static void setCurrentLocation(MapFragment.Point p) {
+        myLocation = p;
     }
 
     // floor is -1 indexed
