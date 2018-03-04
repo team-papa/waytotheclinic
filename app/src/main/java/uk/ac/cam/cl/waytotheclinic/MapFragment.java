@@ -28,7 +28,6 @@ import com.google.android.gms.maps.MapsInitializer;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
-import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.TileOverlay;
 import com.google.android.gms.maps.model.TileOverlayOptions;
@@ -65,6 +64,9 @@ public class MapFragment extends Fragment implements OnMapReadyCallback{
     private LocTileProvider locTileProvider;
 
 
+    /**
+     * This method is called once the map is available to be written to
+     */
     @Override
     public void onMapReady(final GoogleMap googleMap) {
         this.googleMap = googleMap;
@@ -76,10 +78,12 @@ public class MapFragment extends Fragment implements OnMapReadyCallback{
                 @Override
                 public URL getTileUrl(int x, int y, int zoom) {
                     try {
+                        //if the tile is blank just use the blank tile
                         if (!tilePopulated(Floor, zoom, x, y))
-                            return getRemoteOrLocal("blank.png");
+                            return getCachedFileOrGetRemote("blank.png");
 
-                        return getRemoteOrLocal(String.format("TileMap%d/%d/%d/%d.png", Floor, zoom, x, y));
+                        //Otherwise return the correct tile
+                        return getCachedFileOrGetRemote(String.format("TileMap%d/%d/%d/%d.png", Floor, zoom, x, y));
                     } catch (MalformedURLException e) {
                         e.printStackTrace();
                     }
@@ -89,7 +93,8 @@ public class MapFragment extends Fragment implements OnMapReadyCallback{
                 private String baseTilePath = (getActivity().getExternalFilesDir(null).getAbsolutePath()) + "/TileStore/";
                 private String remoteTilePath = "http://cjj39.user.srcf.net/WayToTheClinic/";
 
-                public URL getRemoteOrLocal(String path) throws MalformedURLException {
+
+                public URL getCachedFileOrGetRemote(String path) throws MalformedURLException {
                     File local = new File(baseTilePath + path);
                     if(!local.exists()) {
                         //load data from server then write to local
@@ -238,6 +243,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback{
     };
 
 
+    //checks whether the tile is in the populated tiles list
     private boolean tilePopulated(int f, int z, int x, int y){
         String check = String.format("(%d,%d,%d,%d)", f,z,x,y);
         for(String s : populatedTiles){
