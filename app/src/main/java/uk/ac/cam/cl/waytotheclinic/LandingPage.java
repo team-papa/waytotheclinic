@@ -456,7 +456,7 @@ public class LandingPage  extends AppCompatActivity implements LocationFragment.
                             lastTapTimeMs = System.currentTimeMillis();
 
                             if (numberOfTaps == 3) {
-                                Toast.makeText(getApplicationContext(), "Here's the way to the closest A&E room", Toast.LENGTH_SHORT).show();
+                                Toast.makeText(getApplicationContext(), "Here's the way to Accident & Emergency ", Toast.LENGTH_SHORT).show();
                                 // TODO show path to nearest AE room
                                 Intent intent = new Intent(getBaseContext(), DirectionsPage.class);
                                 searchString = "A and E";
