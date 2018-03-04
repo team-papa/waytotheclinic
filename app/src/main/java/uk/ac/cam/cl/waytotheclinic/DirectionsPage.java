@@ -365,7 +365,6 @@ public class DirectionsPage extends LandingPage {
     }
 
 
-
     @Override
     public boolean onNavigationItemSelected(MenuItem item) {
         drawer_layout_dir = findViewById(R.id.drawer_layout_dir);
