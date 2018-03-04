@@ -2,12 +2,13 @@ package uk.ac.cam.cl.waytotheclinic;
 
 import android.content.Context;
 import android.graphics.Rect;
+import android.text.Editable;
 import android.util.AttributeSet;
-import android.widget.AutoCompleteTextView;
 
 import java.util.HashMap;
 
 public class CustomAutoCompleteTextView extends android.support.v7.widget.AppCompatAutoCompleteTextView {
+
     public CustomAutoCompleteTextView(Context context) {
         super(context);
     }
@@ -23,6 +24,25 @@ public class CustomAutoCompleteTextView extends android.support.v7.widget.AppCom
     @Override
     public boolean enoughToFilter() {
         return true;
+    }
+
+    @Override
+    protected void performFiltering(CharSequence text, int keyCode)
+    {
+        String newText = text.toString();
+        if (newText.contains(" "))
+        {
+            int lastIndex = newText.lastIndexOf(" ");
+            if (lastIndex != newText.length() - 1)
+            {
+                newText = newText.substring(lastIndex + 1).trim();
+                if (newText.length() >= getThreshold())
+                {
+                    text = newText;
+                }
+            }
+        }
+        super.performFiltering(text, keyCode);
     }
 
     @Override

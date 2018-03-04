@@ -43,6 +43,7 @@ import android.widget.ImageButton;
 import android.widget.SimpleAdapter;
 import android.widget.TextView;
 import android.widget.Toast;
+import android.widget.AutoCompleteTextView;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -65,9 +66,6 @@ import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
-
-import android.widget.AutoCompleteTextView;
-
 
 import static uk.ac.cam.cl.waytotheclinic.MapFragment.fromLatLngToPoint;
 import static uk.ac.cam.cl.waytotheclinic.VertexComparator.ManhattanDistance2D;
