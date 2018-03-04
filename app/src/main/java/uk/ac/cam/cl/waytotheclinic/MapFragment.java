@@ -28,6 +28,7 @@ import com.google.android.gms.maps.MapsInitializer;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.TileOverlay;
 import com.google.android.gms.maps.model.TileOverlayOptions;
@@ -63,7 +64,6 @@ public class MapFragment extends Fragment implements OnMapReadyCallback{
 
     private PathTileProvider pathTileProvider;
     private LocTileProvider locTileProvider;
-
 
     /**
      * This method is called once the map is available to be written to
@@ -149,29 +149,54 @@ public class MapFragment extends Fragment implements OnMapReadyCallback{
 
             @Override
             public void onMapLongClick(LatLng latLng) {
+
                 if(getActivity().findViewById(R.id.bottom_white_box) != null) {
-                    setLocation(latLng);
+                    setDestination(latLng);
                 }
+
             }
         });
     }
 
     public void setLocation(LatLng latLng){
 
+        if (LandingPage.myLocationMarker == null) {
+
+            Log.d("Location", "Set");
+            MarkerOptions op = new MarkerOptions();
+            op.position(latLng);
+
+            Bitmap bMap = BitmapFactory.decodeResource(getResources(), R.drawable.mylocmap);
+            Bitmap bMapScaled = Bitmap.createScaledBitmap(bMap, dpToPx(32.0F), dpToPx(32.0F), true);
+            op.icon(BitmapDescriptorFactory.fromBitmap(bMapScaled));
+            LandingPage.myLocationMarker = googleMap.addMarker(op);
+            CameraUpdate cameraUpdate = CameraUpdateFactory.newLatLngZoom(latLng, 1);
+            googleMap.animateCamera(cameraUpdate);
+        } else {
+            LandingPage.myLocationMarker.setPosition(latLng);
+        }
+
+        LandingPage.setCurrentLocation(new Point(latLng.latitude,latLng.longitude,1));
+    }
+
+    public void setDestination(LatLng latLng){
+
         locTileProvider.setLocation(new Point(latLng.latitude,latLng.longitude,0));
 
         if (LandingPage.clickedLocationMarker == null) {
             MarkerOptions op = new MarkerOptions();
+            op.title("Current Location");
             op.position(latLng);
-            Bitmap bMap = BitmapFactory.decodeResource(getResources(), R.drawable.clicked_loc_marker);
-            Bitmap bMapScaled = Bitmap.createScaledBitmap(bMap, dpToPx(32.0F), dpToPx(32.0F), true);
-            op.icon(BitmapDescriptorFactory.fromBitmap(bMapScaled));
             LandingPage.clickedLocationMarker = googleMap.addMarker(op);
         } else {
             LandingPage.clickedLocationMarker.setPosition(latLng);
         }
 
-        // We currently have a LatLng in lat/long coordinates. We must convert this to a Point in map coordinates [0,1]
+        // We currently have a LatLng in lat/long coordinates
+        Log.d("Initial LatLng:", latLng.latitude + " " + latLng.longitude);
+
+        // We must convert this to a Point in map coordinates [0,1]
+
         Point mapLoc = fromLatLngToPoint(latLng);
 
 

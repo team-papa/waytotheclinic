@@ -7,12 +7,11 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 public class PathFinder {
 
-    // final list will be backwards
+    // Get a path from the start vertex to the end vertex, with or without stairs
     public List<Edge> getPath(Vertex start, Vertex end, boolean noStairs) {
         HashSet<Vertex> closedSet = new HashSet<>();
 
@@ -30,7 +29,7 @@ public class PathFinder {
         fScore.put(start, VertexComparator.manhattanDistance(start, end));
 
         while (!openSet.isEmpty()) {
-            // From Wikipedia
+            // Code is modeled off https://en.wikipedia.org/wiki/A*_search_algorithm
             Vertex current = pickBestNext(openSet, fScore);
 
             if (current.samePlaceAs(end)) {
@@ -61,22 +60,21 @@ public class PathFinder {
 
                 int tentative_gScore = tryGet(current, gScore) + adjEdge.getCost();
 
-//                System.out.println("neighbour: " + neighbour);
                 if (tentative_gScore >= tryGet(neighbour, gScore)) {
                     continue;
                 }
 
                 // This path is the best until now
-//                System.out.println("" + neighbour + current + tentative_gScore);
                 cameFrom.put(neighbour, current);
                 cameFromEdge.put(neighbour, adjEdge);
                 gScore.put(neighbour, tentative_gScore);
                 fScore.put(neighbour, tryGet(neighbour, gScore) + VertexComparator.manhattanDistance(neighbour, end));
             }
         }
-        System.err.println("Returning null, OUCH");
+        System.err.println("Unable to find a path from " + start + " to " + end);
         return new ArrayList<>();
     }
+
 
     public static Pair<List<Instruction>, List<Edge>> getTextDirections(List<Edge> path) {
         List<Instruction> directions = new ArrayList<>();
@@ -86,7 +84,7 @@ public class PathFinder {
 
         String textDirection = "";
 
-        // add all places you walk past on a straight to the list
+        // Add all places you walk past on a straight to the list
         ArrayList<String> straightLabelList = new ArrayList<>();
 
         Edge lastedge = null;
@@ -150,6 +148,8 @@ public class PathFinder {
                 String placeName = (labels.size() > 0) ? labels.get(0) : "";
 
                 if (turnType != TurnType.STRAIGHT) {
+                    // It wasn't straight, so pop everything off the straight list, flush it
+                    // and then add our next instruction
                     if (!(flushStraightLabelList(straightLabelList).equals("") && textDirection == "")) {
                         textDirection += flushStraightLabelList(straightLabelList);
 
@@ -204,28 +204,30 @@ public class PathFinder {
 
                     textDirection = "";
                 } else {
-                    // if was straight, just add to list
+                    // If was straight, just add to list
                     if (straightLabelList.size() == 0) textDirection = "Go straight";
                     straightLabelList.add(placeName);
                 }
 
-                // point towards new direction
+                // Point towards new direction
                 orientAngle = newAngle;
             }
             lastedge = e;
         }
         if (!flushStraightLabelList(straightLabelList).equals("")) {
-            directions.add(new Instruction(R.drawable.straight, "Go straight" + flushStraightLabelList(straightLabelList)));
+            directions.add(new Instruction(R.drawable.straight, "Go straight"
+                    + flushStraightLabelList(straightLabelList)));
         }
         directions.add(new Instruction(R.drawable.destination, "You have arrived at your destination"));
 
         return new Pair<>(directions, whichEdge);
     }
 
+
     private static String flushStraightLabelList(List<String> straightLabelList) {
 
         String textDirection = "";
-        // flush last instruction if needed
+        // Flush last instruction if needed
         if (straightLabelList.size() > 0) {
             for (int i = 0; i < straightLabelList.size(); i++) {
                 String label = straightLabelList.get(i);
@@ -238,7 +240,7 @@ public class PathFinder {
                 }
             }
 
-            // remove trailing comma
+            // Remove trailing comma
             textDirection = textDirection.replaceAll(",$", "");
 
         }
@@ -269,7 +271,7 @@ public class PathFinder {
 
         totalPath.add(firstEdge);
 
-        while (cameFromEdge.keySet().contains(current)) { // assumes will work
+        while (cameFromEdge.keySet().contains(current)) {
             current = cameFrom.get(current);
             if (cameFromEdge.get(current) != null) totalPath.add(cameFromEdge.get(current));
         }
@@ -281,6 +283,4 @@ public class PathFinder {
         Integer d = m.get(v);
         return d != null ? d : Integer.MAX_VALUE;
     }
-
-
 }
