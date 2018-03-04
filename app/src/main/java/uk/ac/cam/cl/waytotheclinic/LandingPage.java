@@ -811,9 +811,10 @@ public class LandingPage  extends AppCompatActivity implements LocationFragment.
 
         Log.d("Test", xs + " " + ys);
         LatLng ll = map_fragment.fromPointToLatLng(rotatedX);
+        LatLng lla = new LatLng(ll.latitude + 4.0,ll.longitude + 7.0);
 
         if (xs >= 0 && xs <= 1 && ys >= 0 && ys <= 1) {
-            map_fragment.setLocation(ll);
+            map_fragment.setLocation(lla);
         }
         else {
             // Deal with location not in range

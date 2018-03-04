@@ -100,7 +100,7 @@ public class LocationFragment extends Fragment {
                         new LocationTask().execute(callback);
                     }
                 }
-            }, 0, 5000);    // Refresh every 5 seconds
+            }, 0, 5000);    // Refresh every second
 
             locationRequest = new LocationRequest();
             locationRequest.setInterval(5000);
