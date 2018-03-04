@@ -176,7 +176,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback{
             vertexMap.put(vertex,vertex);
         }
 
-        Vertex closest = LandingPage.getNearestVertex(mapLoc.x,mapLoc.y,0,960,vertexMap);
+        Vertex closest = LandingPage.getNearestVertex(mapLoc.x,mapLoc.y,getFloor(),960,vertexMap);
 
         ArrayList<String> labelsList = closest.getLabels();
         if(labelsList != null && labelsList.size() != 0) {
@@ -218,7 +218,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback{
         mapView.invalidate();
     }
 
-    public Point fromLatLngToPoint(LatLng latLng) {
+    public static Point fromLatLngToPoint(LatLng latLng) {
         Double x = (latLng.longitude + 180) / 360;
         Double y = ((1 - Math.log(Math.tan(latLng.latitude * Math.PI / 180) + 1 / Math.cos(latLng.latitude * Math.PI / 180)) / Math.PI) / 2);
         return new Point(x, y, 0);

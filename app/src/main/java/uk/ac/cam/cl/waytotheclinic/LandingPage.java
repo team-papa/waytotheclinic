@@ -49,6 +49,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -65,6 +66,7 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 
+import static uk.ac.cam.cl.waytotheclinic.MapFragment.fromLatLngToPoint;
 import static uk.ac.cam.cl.waytotheclinic.VertexComparator.ManhattanDistance2D;
 
 public class LandingPage  extends AppCompatActivity implements LocationFragment.LocationListener, NavigationView.OnNavigationItemSelectedListener,
@@ -142,7 +144,6 @@ public class LandingPage  extends AppCompatActivity implements LocationFragment.
         drawer_layout = findViewById(R.id.drawer_layout);
         NavigationView nav_view = findViewById(R.id.nav_view);
         menu_button = findViewById(R.id.menu_button);
-
         check_box = findViewById(R.id.check_box);
         check_box_text = findViewById(R.id.check_box_text);
         ae_button = findViewById(R.id.ae_button);
@@ -234,6 +235,7 @@ public class LandingPage  extends AppCompatActivity implements LocationFragment.
                 search_box.setAdapter(new SimpleAdapter(getBaseContext(), placesList, R.layout.autocomplete_layout, from, to));
 
                 searchString = hm.get("name");
+                Log.d("searchString", searchString);
 
                 // RICHIE: from label to vertex
                 toClosestVertex = getClosestMatchingVertex(searchString);
@@ -646,11 +648,31 @@ public class LandingPage  extends AppCompatActivity implements LocationFragment.
 
 
     public Vertex getClosestMatchingVertex(String searchTerm) {
-        // TODO make myLocation to always get updated to the user's current location
-        Vertex myLocation = new Vertex(100, 200, 3);
+        HashSet<Vertex> vertexSet = (HashSet<Vertex>) LocationsProvider.generateVertices(getApplicationContext());
+        HashMap<Vertex,Vertex> vertexMap = new HashMap<>();
+
+        for(Vertex vertex : vertexSet) {
+            vertexMap.put(vertex,vertex);
+        }
+
+        MapFragment.Point myLocationPoint = MapFragment.fromLatLngToPoint(new LatLng(myLocation.x, myLocation.y));
+        Vertex myLocationVertex = getNearestVertex(myLocationPoint.x, myLocationPoint.y, 2,960,vertexMap);
 
         if(searchTerm.equals("My location")) {
-            return myLocation;
+            LatLng latLng = new LatLng(myLocation.x, myLocation.y);
+            CameraUpdate cameraUpdate = CameraUpdateFactory.newLatLngZoom(latLng, 1);
+            if (myLocationMarker == null) {
+                MarkerOptions op = new MarkerOptions();
+                op.position(latLng);
+                Bitmap bMap = BitmapFactory.decodeResource(getResources(), R.drawable.mylocmap);
+                Bitmap bMapScaled = Bitmap.createScaledBitmap(bMap, dpToPx(32.0F), dpToPx(32.0F), true);
+                op.icon(BitmapDescriptorFactory.fromBitmap(bMapScaled));
+                myLocationMarker = MapFragment.googleMap.addMarker(op);
+            } else {
+                myLocationMarker.setPosition(latLng);
+            }
+            ((MapFragment) getFragmentManager().findFragmentById(R.id.map_fragment_dir)).googleMap.animateCamera(cameraUpdate);
+            return myLocationVertex;
         }
 
         HashMap<Vertex, String> bestVertices = new HashMap<>();
@@ -658,8 +680,6 @@ public class LandingPage  extends AppCompatActivity implements LocationFragment.
 
         ArrayList<String> searchArray = new ArrayList<>(
                 Arrays.asList(searchTerm.toLowerCase().split(" ")));
-
-        Set<Vertex> vertexSet = LocationsProvider.generateVertices(getApplicationContext());
 
         for (Vertex v : vertexSet) {
 
@@ -692,7 +712,7 @@ public class LandingPage  extends AppCompatActivity implements LocationFragment.
                 Vertex v = entry.getKey();
                 String label = entry.getValue();
 
-                int currDistance = VertexComparator.manhattanDistance(myLocation, v);
+                int currDistance = VertexComparator.manhattanDistance(myLocationVertex, v);
                 System.out.format("%s %s %d\n", v, label, currDistance);
 
                 if (currDistance < closest) {
@@ -772,8 +792,10 @@ public class LandingPage  extends AppCompatActivity implements LocationFragment.
         Vertex candidate = null;
         int bestDistance = Integer.MAX_VALUE;
         for (Vertex v : vMap.keySet()) {
+            Log.d("v", Integer.toString(v.getZ()));
+            Log.d("touch", Integer.toString(touched.getZ()));
             // Only consider it if they are on the same floor
-            if (v.getZ() != touched.getZ()) {
+            if (v.getZ()+2 != touched.getZ()) {
                 continue;
             }
 
