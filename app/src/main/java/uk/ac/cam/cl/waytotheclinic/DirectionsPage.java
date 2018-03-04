@@ -158,15 +158,16 @@ public class DirectionsPage extends LandingPage {
 
 
         // Make both search boxes have a list of all the places available
+        from_box.setThreshold(1);
         from_box.setAdapter(new SimpleAdapter(getBaseContext(), enhancedPlacesList, R.layout.autocomplete_layout, from, to));
         from_box.setDropDownHorizontalOffset(dpToPx(-8.0F));
         from_box.setDropDownVerticalOffset(dpToPx(+10.0F));
         from_box.setDropDownHeight(dpToPx(280.0F));
+        to_box.setThreshold(1);
         to_box.setAdapter(new SimpleAdapter(getBaseContext(), placesList, R.layout.autocomplete_layout, from, to));
         to_box.setDropDownHorizontalOffset(dpToPx(-8.0F));
         to_box.setDropDownVerticalOffset(dpToPx(+10.0F));
         to_box.setDropDownHeight(dpToPx(240.0F));
-
 
         // Nasty.
         View.OnTouchListener touchy = new View.OnTouchListener() {

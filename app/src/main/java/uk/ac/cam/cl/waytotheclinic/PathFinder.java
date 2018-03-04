@@ -168,7 +168,7 @@ public class PathFinder {
                         if (lastedge.getOutVertex().getZ() < 3) {
                             icon = R.drawable.change_floor_50;
                             textDirection = "Switch to the Level " + (lastedge.getOutVertex().getZ() + 1) +
-                                    " maps using the sidebar";
+                                    " maps by swiping from the left side of the screen";
                             directions.add(new Instruction(icon, textDirection));
                             whichEdge.add(e);
                         }

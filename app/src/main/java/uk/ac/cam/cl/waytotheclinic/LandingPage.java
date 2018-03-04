@@ -66,6 +66,9 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 
+import android.widget.AutoCompleteTextView;
+
+
 import static uk.ac.cam.cl.waytotheclinic.MapFragment.fromLatLngToPoint;
 import static uk.ac.cam.cl.waytotheclinic.VertexComparator.ManhattanDistance2D;
 
@@ -75,7 +78,7 @@ public class LandingPage  extends AppCompatActivity implements LocationFragment.
     // UI Components
     ConstraintLayout main_layout;
     ConstraintLayout top_green_box;
-    CustomAutoCompleteTextView search_box;
+    AutoCompleteTextView search_box;
     DrawerLayout drawer_layout;
     ImageButton menu_button;
     private MapFragment map_fragment;
