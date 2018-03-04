@@ -374,15 +374,15 @@ public class DirectionsPage extends LandingPage {
         switch (item.getItemId()) {
             case R.id.nav_first_floor:
                 map_fragment_dir.setFloor(1);
-                Toast.makeText(getApplicationContext(), "First floor", Toast.LENGTH_SHORT).show();
+                Toast.makeText(getApplicationContext(), "Level 1", Toast.LENGTH_SHORT).show();
                 break;
             case R.id.nav_second_floor:
                 map_fragment_dir.setFloor(2);
-                Toast.makeText(getApplicationContext(), "Second floor", Toast.LENGTH_SHORT).show();
+                Toast.makeText(getApplicationContext(), "Level 2", Toast.LENGTH_SHORT).show();
                 break;
             case R.id.nav_third_floor:
                 map_fragment_dir.setFloor(3);
-                Toast.makeText(getApplicationContext(), "Third floor", Toast.LENGTH_SHORT).show();
+                Toast.makeText(getApplicationContext(), "Level 3", Toast.LENGTH_SHORT).show();
                 break;
         }
 
