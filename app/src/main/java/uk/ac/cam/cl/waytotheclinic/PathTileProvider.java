@@ -73,6 +73,8 @@ public class PathTileProvider implements TileProvider {
             canvas.drawLine(canvasAX, canvasAY, canvasBX, canvasBY, pathPaint);
         }
 
+
+
         return result;
     }
 }
