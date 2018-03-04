@@ -81,6 +81,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback{
     private LocTileProvider locTileProvider;
 
     private Marker mLocationMarker;
+    private Marker mDestinationMarker;
 
     @Override
     public void onMapReady(final GoogleMap googleMap) {
@@ -181,28 +182,23 @@ public class MapFragment extends Fragment implements OnMapReadyCallback{
             googleMap.animateCamera(cameraUpdate);
         } else {
             mLocationMarker.setPosition(latLng);
-            CameraUpdate cameraUpdate = CameraUpdateFactory.newLatLngZoom(latLng, 1);
-            googleMap.animateCamera(cameraUpdate);
         }
+
+        LandingPage.setCurrentLocation(new Point(latLng.latitude,latLng.longitude,1));
     }
 
     public void setDestination(LatLng latLng){
 
         locTileProvider.setLocation(new Point(latLng.latitude,latLng.longitude,0));
 
-        if (mLocationMarker == null) {
+        if (mDestinationMarker == null) {
             MarkerOptions op = new MarkerOptions();
             op.title("Current Location");
             op.position(latLng);
-            /*Bitmap bMap = BitmapFactory.decodeResource(getResources(), R.drawable.mylocmap);
-            Bitmap bMapScaled = Bitmap.createScaledBitmap(bMap, dpToPx(32.0F), dpToPx(32.0F), true);
-            op.icon(BitmapDescriptorFactory.fromBitmap(bMapScaled));*/
-            mLocationMarker = googleMap.addMarker(op);
+            mDestinationMarker = googleMap.addMarker(op);
         } else {
-            mLocationMarker.setPosition(latLng);
+            mDestinationMarker.setPosition(latLng);
         }
-
-        LandingPage.setCurrentLocation(new Point(latLng.latitude,latLng.longitude,1));
 
         // We currently have a LatLng in lat/long coordinates
         Log.d("Initial LatLng:", latLng.latitude + " " + latLng.longitude);
@@ -259,27 +255,6 @@ public class MapFragment extends Fragment implements OnMapReadyCallback{
                 }
             });
         }
-
-/*
-        Point closestPoint = getPointFromVertex(closest,0,1);
-
-        Log.d("Closest Point:", closestPoint.x + " " + closestPoint.y);
-
-        // Divide by 960 to convert from vertex to map coordinates
-
-        closestPoint.x = closestPoint.x / 960;
-        closestPoint.y = closestPoint.y / 960;
-
-
-        // We now have Point in map coordinates
-        Log.d("Closest Point:", closestPoint.x + " " + closestPoint.y);
-
-        // Must convert to LatLng in Latitude/Longitude coordinates
-
-        LatLng closestLatLng = fromPointToLatLng(closestPoint);
-
-        Log.d("Convert to LatLng:", closestLatLng.latitude + " " + closestLatLng.longitude);
-*/
 
         //invalidate cache to cause update
         locOverlay.clearTileCache();

@@ -745,18 +745,11 @@ public class LandingPage  extends AppCompatActivity implements LocationFragment.
     @Override
     public void updateLocation(Location l) {
 
-        //mCurrentLocation = l;
         Log.i("waytotheclinic", "waytotheclinic location updated: " + l.toString());
-        TextView latText = findViewById(R.id.latitudeText);
-        TextView lonText = findViewById(R.id.longitudeText);
-        TextView accText = findViewById(R.id.accuracyText);
+
         Double lat = l.getLatitude();
         Double lon = l.getLongitude();
         Float acc = l.getAccuracy();
-
-        latText.setText(lat.toString());
-        lonText.setText(lon.toString());
-        accText.setText(acc.toString());
 
         LatLng loc = new LatLng(lat,lon);
         //LatLng loc = new LatLng(52.1748719,0.1401977);
@@ -781,13 +774,18 @@ public class LandingPage  extends AppCompatActivity implements LocationFragment.
 
         MapFragment.Point rotatedX = rotatePoint(x,-theta);
 
-        Double xs = rotatedX.x*960;
-        Double ys = rotatedX.y*960;
+        Double xs = rotatedX.x;
+        Double ys = rotatedX.y;
 
         Log.d("Test", xs + " " + ys);
         LatLng ll = mapFragment.fromPointToLatLng(rotatedX);
-        mapFragment.setLocation(ll);
 
+        if (xs >= 0 && xs <= 1 && ys >= 0 && ys <= 1) {
+            mapFragment.setLocation(ll);
+        }
+        else {
+            // Deal with location not in range
+        }
 
         /*LatLng x0 = rotatePoint(mapFragment.fromPointToLatLng(new MapFragment.Point(902.0/960.0,362.0/960.0,0)),theta);
         LatLng y0 = new LatLng(52.173154,0.138020);
@@ -809,15 +807,9 @@ public class LandingPage  extends AppCompatActivity implements LocationFragment.
         Log.d("Test", xs + " " + ys);
         mapFragment.setLocation(rotatedX);*/
 
-        // Floor number is altitude when we have data from WiFi
-        // int floor = (int) l.getAltitude();
     }
 
     public MapFragment.Point rotatePoint(MapFragment.Point initialPt, Double theta) {
-
-        //Double theta = Math.atan((realY*x-realX*y)/(realX*x-realY*y));
-        //Double thetaDeg = Math.toDegrees(theta);
-        //Log.d("Angle", thetaDeg.toString());
 
         Double x = initialPt.x;
         Double y = initialPt.y;
