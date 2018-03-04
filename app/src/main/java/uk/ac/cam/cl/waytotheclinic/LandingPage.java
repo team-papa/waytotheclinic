@@ -59,6 +59,7 @@ import java.util.TreeSet;
 
 import com.google.android.gms.location.LocationCallback;
 import com.google.android.gms.location.LocationRequest;
+import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.maps.CameraUpdate;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
@@ -112,7 +113,7 @@ public class LandingPage  extends AppCompatActivity implements LocationFragment.
     static String searchString;
 
     public static MapFragment.Point myLocation = new MapFragment.Point(26, 98.6,2);;
-    private Marker myLocationMarker;
+    public static Marker myLocationMarker;
     public static MapFragment.Point clickedLocation;
     public static Marker clickedLocationMarker;
 
@@ -793,11 +794,11 @@ public class LandingPage  extends AppCompatActivity implements LocationFragment.
         Double theta = 155.0;
 
         MapFragment.Point x0 = rotatePoint(new MapFragment.Point(902.0/960.0,362.0/960.0,0),theta);
-        MapFragment.Point y0 = mapFragment.fromLatLngToPoint(new LatLng(52.173154,0.138020));
+        MapFragment.Point y0 = map_fragment.fromLatLngToPoint(new LatLng(52.173154,0.138020));
         MapFragment.Point x1 = rotatePoint(new MapFragment.Point(176.0/960.0,562.0/960.0,0),theta);
-        MapFragment.Point y1 = mapFragment.fromLatLngToPoint(new LatLng(52.175751,0.143265));
+        MapFragment.Point y1 = map_fragment.fromLatLngToPoint(new LatLng(52.175751,0.143265));
 
-        MapFragment.Point y = mapFragment.fromLatLngToPoint(loc);
+        MapFragment.Point y = map_fragment.fromLatLngToPoint(loc);
         MapFragment.Point x = new MapFragment.Point(0,0,0);
 
         x.x = (x0.x * (y1.x - y.x) + x1.x * (y.x - y0.x)) / (y1.x - y0.x);
@@ -809,10 +810,10 @@ public class LandingPage  extends AppCompatActivity implements LocationFragment.
         Double ys = rotatedX.y;
 
         Log.d("Test", xs + " " + ys);
-        LatLng ll = mapFragment.fromPointToLatLng(rotatedX);
+        LatLng ll = map_fragment.fromPointToLatLng(rotatedX);
 
         if (xs >= 0 && xs <= 1 && ys >= 0 && ys <= 1) {
-            mapFragment.setLocation(ll);
+            map_fragment.setLocation(ll);
         }
         else {
             // Deal with location not in range
@@ -877,7 +878,7 @@ public class LandingPage  extends AppCompatActivity implements LocationFragment.
     }
 
     public static void setCurrentLocation(MapFragment.Point p) {
-        mCurrentLocation = p;
+        myLocation = p;
     }
 
     // floor is -1 indexed
