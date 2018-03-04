@@ -162,13 +162,31 @@ public class MapFragment extends Fragment implements OnMapReadyCallback{
             public void onMapLongClick(LatLng latLng) {
 
                 //Log.d("clicked values:", latLng.latitude + ":" + latLng.longitude);
-                setLocation(latLng);
+                setDestination(latLng);
             }
         });
 
     }
 
     public void setLocation(LatLng latLng){
+        if (mLocationMarker == null) {
+            MarkerOptions op = new MarkerOptions();
+            op.title("Current Location");
+            op.position(latLng);
+            Bitmap bMap = BitmapFactory.decodeResource(getResources(), R.drawable.mylocmap);
+            Bitmap bMapScaled = Bitmap.createScaledBitmap(bMap, dpToPx(32.0F), dpToPx(32.0F), true);
+            op.icon(BitmapDescriptorFactory.fromBitmap(bMapScaled));
+            mLocationMarker = googleMap.addMarker(op);
+            CameraUpdate cameraUpdate = CameraUpdateFactory.newLatLngZoom(latLng, 1);
+            googleMap.animateCamera(cameraUpdate);
+        } else {
+            mLocationMarker.setPosition(latLng);
+            CameraUpdate cameraUpdate = CameraUpdateFactory.newLatLngZoom(latLng, 1);
+            googleMap.animateCamera(cameraUpdate);
+        }
+    }
+
+    public void setDestination(LatLng latLng){
 
         locTileProvider.setLocation(new Point(latLng.latitude,latLng.longitude,0));
 
@@ -212,7 +230,6 @@ public class MapFragment extends Fragment implements OnMapReadyCallback{
             String topLabel = labelsList.get(0);
             Log.d("Closest Point:", topLabel.toString());
 
-            //LatLng ll = new LatLng(la);
             CameraUpdate cameraUpdate = CameraUpdateFactory.newLatLngZoom(latLng, 1);
             googleMap.animateCamera(cameraUpdate);
 

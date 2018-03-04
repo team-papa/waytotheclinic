@@ -737,7 +737,7 @@ public class LandingPage  extends AppCompatActivity implements LocationFragment.
 
     @Override
     public void startLocationUpdates(LocationRequest lr, LocationCallback lc) {
-//        LocationServices.getFusedLocationProviderClient(this).requestLocationUpdates(lr, lc, null);
+        LocationServices.getFusedLocationProviderClient(this).requestLocationUpdates(lr, lc, null);
     }
 
     @Override
@@ -745,15 +745,55 @@ public class LandingPage  extends AppCompatActivity implements LocationFragment.
 
         //mCurrentLocation = l;
         Log.i("waytotheclinic", "waytotheclinic location updated: " + l.toString());
+        TextView latText = findViewById(R.id.latitudeText);
+        TextView lonText = findViewById(R.id.longitudeText);
+        TextView accText = findViewById(R.id.accuracyText);
+        Double lat = l.getLatitude();
+        Double lon = l.getLongitude();
+        Float acc = l.getAccuracy();
+        latText.setText(lat.toString());
+        lonText.setText(lon.toString());
+        accText.setText(acc.toString());
 
-        double x = (l.getLatitude() - 52.173154) / (52.175751 - 52.173154) * (902 - 176) + 176;
-        double y = (l.getLongitude() - 0.138020) / (0.143265 - 0.138020) * (562 - 362) + 562;
+        //LatLng loc = new LatLng(lat,lon);
+        LatLng loc = new LatLng(52.1748719,0.1401977);
+
+        MapFragment.Point x0 = rotatePoint(new MapFragment.Point(902,362,0));
+        MapFragment.Point y0 = mapFragment.fromLatLngToPoint(new LatLng(52.173154,0.138020));
+        MapFragment.Point x1 = rotatePoint(new MapFragment.Point(176,562,0));
+        MapFragment.Point y1 = mapFragment.fromLatLngToPoint(new LatLng(52.175751,0.143265));
+
+        MapFragment.Point y = mapFragment.fromLatLngToPoint(loc);
+        MapFragment.Point x = new MapFragment.Point(0,0,0);
+
+        x.x = (x0.x * (y1.x - y.x) + x1.x * (y.x - y0.x)) / (y1.x - y0.x);
+        x.y = (y0.x * (x1.x - x.x) + y1.x * (x.x - x0.x)) / (x1.x - x0.x);
+
         // Floor number is altitude when we have data from WiFi
         // int floor = (int) l.getAltitude();
 
-        MapFragment.Point p = new MapFragment.Point(x, y, 0);
-        //mapFragment.setLocation(p);
-        //mapFragment.setLocation(new MapFragment.Point(26, 98.6, 0));
+        LatLng ll = mapFragment.fromPointToLatLng(x);
+        mapFragment.setLocation(ll);
+    }
+
+    public MapFragment.Point rotatePoint(MapFragment.Point initialPt) {
+
+        //Double theta = Math.atan((realY*x-realX*y)/(realX*x-realY*y));
+        //Double thetaDeg = Math.toDegrees(theta);
+        //Log.d("Angle", thetaDeg.toString());
+
+        Double x = initialPt.x;
+        Double y = initialPt.y;
+
+        Double x1 = x*Math.cos(170) - y*Math.sin(170);
+        Double y1 = x*Math.sin(170) + y*Math.cos(170);
+        Log.d("Rotated x", x1.toString());
+        Log.d("Rotated y", y1.toString());
+
+        MapFragment.Point rotated = new MapFragment.Point(x1,y1,0);
+
+        return rotated;
+
     }
 
     public static void setCurrentLocation(MapFragment.Point p) {

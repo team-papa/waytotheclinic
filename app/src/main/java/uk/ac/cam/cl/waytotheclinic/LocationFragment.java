@@ -11,6 +11,8 @@ import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.Manifest;
+import android.widget.TextView;
+
 import com.google.android.gms.location.LocationCallback;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationResult;
@@ -104,7 +106,7 @@ public class LocationFragment extends Fragment {
             locationRequest.setInterval(5000);
             locationRequest.setFastestInterval(5000);
             locationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
-
+            Log.d("Location", "Testing");
             locationCallback = new LocationCallback() {
                 @Override
                 public void onLocationResult(LocationResult locRes) {
@@ -135,7 +137,8 @@ public class LocationFragment extends Fragment {
         } else {
             if (intermediateValue != null) {
                 // TODO: incorporate WiFi location in return value
-//                callback.updateLocation(l);
+                Log.d("Location ","Call");
+                callback.updateLocation(l);
                 intermediateValue = null;
             }
         }
