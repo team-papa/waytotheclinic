@@ -4,6 +4,7 @@ import android.animation.LayoutTransition;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.os.Handler;
 import android.support.constraint.ConstraintLayout;
 import android.support.constraint.ConstraintSet;
 import android.support.design.widget.FloatingActionButton;
@@ -82,6 +83,19 @@ public class DirectionsPage extends LandingPage {
         NavigationView nav_view = findViewById(R.id.nav_view_dir);
 
 
+        // If we're here because of triple click on AE button
+        if(getIntent().getBooleanExtra("ae", false)) {
+            new Handler().postDelayed(new Runnable() {
+                @Override
+                public void run() {
+                    from_box.setText("My location");
+                    fromClosestVertex = getClosestMatchingVertex("My location");
+                    toClosestVertex = getClosestMatchingVertex("A and E");
+                    handlePathBuilding();
+                }
+            }, 800);
+        }
+
 
         // I really wish I could get rid of this but I need syncState()
         ActionBarDrawerToggle toggle =  new ActionBarDrawerToggle(
@@ -140,7 +154,6 @@ public class DirectionsPage extends LandingPage {
         extrahm = new HashMap<>();
         extrahm.put("name", "My location");
         extrahm.put("icon", Integer.toString(R.drawable.target_50));
-        // TODO: implement a special vertex for my location
         enhancedPlacesList.add(0, extrahm);
 
 
@@ -271,6 +284,7 @@ public class DirectionsPage extends LandingPage {
                 map_fragment_dir.googleMap.animateCamera(cameraUpdate);
             }
         });
+
     }
 
 
@@ -322,8 +336,11 @@ public class DirectionsPage extends LandingPage {
 
     public void handlePathBuilding() {
         if(fromClosestVertex != null && toClosestVertex != null) {
-            InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
-            imm.hideSoftInputFromWindow(getCurrentFocus().getWindowToken(), 0);
+            // Close the keyboard
+            if(getCurrentFocus() != null) {
+                InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+                imm.hideSoftInputFromWindow(getCurrentFocus().getWindowToken(), 0);
+            }
 
             // Make swipe up box show
             instructions.setVisibility(View.VISIBLE);
@@ -342,8 +359,7 @@ public class DirectionsPage extends LandingPage {
             instrLength = dpToPx(numberInstr*60.0F);
             if (instrLength > dpToPx(360.0F)) instrLength = dpToPx(360.0F);
 
-
-            // TODO render path between fromClosestVertex to toClosestVertex
+            // Render the path
             map_fragment_dir.setPath(path, 960);
         }
     }
