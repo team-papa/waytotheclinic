@@ -45,8 +45,8 @@ import java.util.Map;
 public class DirectionsPage extends LandingPage {
 
     ImageButton back_button;
-    AutoCompleteTextView from_box;
-    AutoCompleteTextView to_box;
+    CustomAutoCompleteTextView from_box;
+    CustomAutoCompleteTextView to_box;
     CheckBox check_box;
     TextView check_box_text;
     FloatingActionButton my_location_button_dir;
@@ -57,7 +57,6 @@ public class DirectionsPage extends LandingPage {
     MapFragment map_fragment_dir;
 
     private Marker myLocationMarker_dir;
-
 
     Map<String, String> extrahm = new HashMap<>();
 

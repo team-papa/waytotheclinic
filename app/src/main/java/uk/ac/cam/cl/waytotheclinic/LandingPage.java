@@ -43,7 +43,6 @@ import android.widget.ImageButton;
 import android.widget.SimpleAdapter;
 import android.widget.TextView;
 import android.widget.Toast;
-import android.widget.AutoCompleteTextView;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -76,7 +75,7 @@ public class LandingPage  extends AppCompatActivity implements LocationFragment.
     // UI Components
     ConstraintLayout main_layout;
     ConstraintLayout top_green_box;
-    AutoCompleteTextView search_box;
+    CustomAutoCompleteTextView search_box;
     DrawerLayout drawer_layout;
     ImageButton menu_button;
     private MapFragment map_fragment;
