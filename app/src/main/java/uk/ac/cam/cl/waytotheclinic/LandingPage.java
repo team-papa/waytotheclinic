@@ -35,7 +35,6 @@ import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.*;
 import android.view.inputmethod.InputMethodManager;
-import android.util.Log;
 import android.util.TypedValue;
 import android.widget.AdapterView;
 import android.widget.CheckBox;
@@ -50,62 +49,36 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.PriorityQueue;
-import java.util.Queue;
 import java.util.Set;
 import java.util.TreeSet;
 
-import android.widget.TextView;
-import android.widget.Toast;
-import android.Manifest;
-import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationCallback;
 import com.google.android.gms.location.LocationRequest;
-import com.google.android.gms.location.LocationResult;
-import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.maps.CameraUpdate;
 import com.google.android.gms.maps.CameraUpdateFactory;
-import com.google.android.gms.maps.model.IndoorBuilding;
-import com.google.android.gms.maps.model.IndoorLevel;
+import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
-import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.android.gms.maps.model.Marker;
+import com.google.android.gms.maps.model.MarkerOptions;
 
+import static uk.ac.cam.cl.waytotheclinic.MapFragment.fromLatLngToPoint;
 import static uk.ac.cam.cl.waytotheclinic.VertexComparator.ManhattanDistance2D;
 
 public class LandingPage  extends AppCompatActivity implements LocationFragment.LocationListener, NavigationView.OnNavigationItemSelectedListener,
         SensorEventListener {
 
-
-    private final String LOCATION_FRAGMENT_TAG = "location-fragment";
-    private final int LOCATION_PERMISSIONS = 1;
-
     // UI Components
     ConstraintLayout main_layout;
-
-    private String[] places = new String[]{"Belgium", "Frodo", "France", "Italy", "Germany", "Spain"};
-    public static MapFragment.Point mCurrentLocation;
-
-    private SensorManager mSensorManager;
-    private Sensor mAccelerometer;
-    private Sensor mMagnetometer;
-    private Sensor mStepCounter;
-
-    private final float[] mAccelerometerReading = new float[3];
-    private final float[] mMagnetometerReading = new float[3];
-    private final float[] mRotationMatrix = new float[9];
-    private final float[] mOrientationAngles = new float[3];
-    private Float mBearing;
-
-    LinkedList<Float> mBearingQueue;
-
     ConstraintLayout top_green_box;
     CustomAutoCompleteTextView search_box;
     DrawerLayout drawer_layout;
     ImageButton menu_button;
-    MapFragment mapFragment;
+    private MapFragment map_fragment;
     CheckBox check_box;
     TextView check_box_text;
     FloatingActionButton ae_button;
@@ -138,21 +111,39 @@ public class LandingPage  extends AppCompatActivity implements LocationFragment.
     static Vertex toClosestVertex;
     static String searchString;
 
-//    final static Bundle mapBundle = new Bundle();
+    public static MapFragment.Point myLocation = new MapFragment.Point(26, 98.6,2);;
+    private Marker myLocationMarker;
+    public static MapFragment.Point clickedLocation;
+    public static Marker clickedLocationMarker;
+
+    // Location related
+    private final String LOCATION_FRAGMENT_TAG = "location-fragment";
+    private final int LOCATION_PERMISSIONS = 1;
+
+    private SensorManager mSensorManager;
+    private Sensor mAccelerometer;
+    private Sensor mMagnetometer;
+    private Sensor mStepCounter;
+    private final float[] mAccelerometerReading = new float[3];
+    private final float[] mMagnetometerReading = new float[3];
+    private final float[] mRotationMatrix = new float[9];
+    private final float[] mOrientationAngles = new float[3];
+    private Float mBearing;
+    LinkedList<Float> mBearingQueue;
+
 
     @Override
     public void onCreate(final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_landing_page);
 
-        mapFragment = (MapFragment)getFragmentManager().findFragmentById(R.id.map_fragment);
+        map_fragment = (MapFragment)getFragmentManager().findFragmentById(R.id.map_fragment);
         main_layout = findViewById(R.id.main_layout);
         top_green_box = findViewById(R.id.top_green_box);
         search_box = findViewById(R.id.search_box);
         drawer_layout = findViewById(R.id.drawer_layout);
         NavigationView nav_view = findViewById(R.id.nav_view);
         menu_button = findViewById(R.id.menu_button);
-
         check_box = findViewById(R.id.check_box);
         check_box_text = findViewById(R.id.check_box_text);
         ae_button = findViewById(R.id.ae_button);
@@ -204,7 +195,6 @@ public class LandingPage  extends AppCompatActivity implements LocationFragment.
             } else {
                 hm.put("icon", Integer.toString(R.drawable.marker_50));
             }
-            // TODO add vertex location data in the hm
             placesQueue.add(hm);
         }
 
@@ -245,13 +235,30 @@ public class LandingPage  extends AppCompatActivity implements LocationFragment.
                 search_box.setAdapter(new SimpleAdapter(getBaseContext(), placesList, R.layout.autocomplete_layout, from, to));
 
                 searchString = hm.get("name");
+                Log.d("searchString", searchString);
 
                 // RICHIE: from label to vertex
-                toClosestVertex = fromLabelToVertex(searchString);
+                toClosestVertex = getClosestMatchingVertex(searchString);
                 search_box.setText(searchString);
 
-                // TODO add action that moves map to selected place hm.get("name") (which is now closestVertex)
+                // Add action that moves map to selected place hm.get("name") (which is now closestVertex)
+                clickedLocation = MapFragment.getPointFromVertex(toClosestVertex, 2, 960);
+                LatLng latLng = MapFragment.fromPointToLatLng(clickedLocation);
+                if (clickedLocationMarker == null) {
+                    MarkerOptions op = new MarkerOptions();
+                    op.position(latLng);
+                    Bitmap bMap = BitmapFactory.decodeResource(getResources(), R.drawable.clicked_loc_marker);
+                    Bitmap bMapScaled = Bitmap.createScaledBitmap(bMap, dpToPx(32.0F), dpToPx(32.0F), true);
+                    op.icon(BitmapDescriptorFactory.fromBitmap(bMapScaled));
+                    clickedLocationMarker = MapFragment.googleMap.addMarker(op);
+                } else {
+                    clickedLocationMarker.setPosition(latLng);
+                }
 
+
+                // Move camera to focus on destination
+                CameraUpdate cameraUpdate = CameraUpdateFactory.newLatLngZoom(latLng, 1);
+                MapFragment.googleMap.animateCamera(cameraUpdate);
 
                 // Make bottom bar containing ->DIRECTIONS button appear
                 bottom_white_box.setVisibility(View.VISIBLE);
@@ -266,7 +273,6 @@ public class LandingPage  extends AppCompatActivity implements LocationFragment.
                     @Override
                     public void onClick(View view) {
                         Intent intent = new Intent(getBaseContext(), DirectionsPage.class);
-//                        fm.putFragment(mapBundle,"map", mapFragment);
                         startActivity(intent);
                     }
                 });
@@ -387,8 +393,6 @@ public class LandingPage  extends AppCompatActivity implements LocationFragment.
             }
         });
 
-        mCurrentLocation = new MapFragment.Point(26, 98.6,1);
-
         // Make "my location" button responsive
         Bitmap bMap = BitmapFactory.decodeResource(getResources(), R.drawable.myloc);
         Bitmap bMapScaled = Bitmap.createScaledBitmap(bMap, dpToPx(24.0F), dpToPx(24.0F), true);
@@ -397,9 +401,19 @@ public class LandingPage  extends AppCompatActivity implements LocationFragment.
             @Override
             public void onClick(View view) {
                 Toast.makeText(getApplicationContext(), "My location!", Toast.LENGTH_SHORT).show();
-                LatLng latLng = new LatLng(mCurrentLocation.x, mCurrentLocation.y);
+                LatLng latLng = new LatLng(myLocation.x, myLocation.y);
                 CameraUpdate cameraUpdate = CameraUpdateFactory.newLatLngZoom(latLng, 1);
-                mapFragment.googleMap.animateCamera(cameraUpdate);
+                if (myLocationMarker == null) {
+                    MarkerOptions op = new MarkerOptions();
+                    op.position(latLng);
+                    Bitmap bMap = BitmapFactory.decodeResource(getResources(), R.drawable.mylocmap);
+                    Bitmap bMapScaled = Bitmap.createScaledBitmap(bMap, dpToPx(32.0F), dpToPx(32.0F), true);
+                    op.icon(BitmapDescriptorFactory.fromBitmap(bMapScaled));
+                    myLocationMarker = MapFragment.googleMap.addMarker(op);
+                } else {
+                    myLocationMarker.setPosition(latLng);
+                }
+                map_fragment.googleMap.animateCamera(cameraUpdate);
             }
         });
 
@@ -422,8 +436,7 @@ public class LandingPage  extends AppCompatActivity implements LocationFragment.
                             handler.removeCallbacksAndMessages(null);
 
                             if ((System.currentTimeMillis() - touchDownMs) > timeoutBetweenTaps) {
-                                //it was not a tap
-
+                                // It was not a tap
                                 numberOfTaps = 0;
                                 lastTapTimeMs = 0;
                                 break;
@@ -443,8 +456,13 @@ public class LandingPage  extends AppCompatActivity implements LocationFragment.
                             lastTapTimeMs = System.currentTimeMillis();
 
                             if (numberOfTaps == 3) {
-                                Toast.makeText(getApplicationContext(), "Here's the way to the closest A&E room", Toast.LENGTH_SHORT).show();
+                                Toast.makeText(getApplicationContext(), "Here's the way to Accident & Emergency ", Toast.LENGTH_SHORT).show();
                                 // TODO show path to nearest AE room
+                                Intent intent = new Intent(getBaseContext(), DirectionsPage.class);
+                                searchString = "Accident & Emergency";
+                                intent.putExtra("ae", true);
+                                startActivity(intent);
+
 
                             } else if (numberOfTaps == 2) {
                                 handler.postDelayed(new Runnable() {
@@ -580,17 +598,16 @@ public class LandingPage  extends AppCompatActivity implements LocationFragment.
 
         // Handle side-menu item-clicks
         switch (item.getItemId()) {
-            // TODO fix floors
             case R.id.nav_first_floor:
-                mapFragment.setFloor(1);
+                map_fragment.setFloor(1);
                 Toast.makeText(getApplicationContext(), "First floor", Toast.LENGTH_SHORT).show();
                 break;
             case R.id.nav_second_floor:
-                mapFragment.setFloor(2);
+                map_fragment.setFloor(2);
                 Toast.makeText(getApplicationContext(), "Second floor", Toast.LENGTH_SHORT).show();
                 break;
             case R.id.nav_third_floor:
-                mapFragment.setFloor(3);
+                map_fragment.setFloor(3);
                 Toast.makeText(getApplicationContext(), "Third floor", Toast.LENGTH_SHORT).show();
                 break;
         }
@@ -600,8 +617,6 @@ public class LandingPage  extends AppCompatActivity implements LocationFragment.
     }
 
     public void swipeDown() {
-        Toast.makeText(getApplicationContext(), "Down swipe", Toast.LENGTH_SHORT).show();
-
         ConstraintSet constraintSet = new ConstraintSet();
         ConstraintLayout.LayoutParams params = (ConstraintLayout.LayoutParams) top_green_box.getLayoutParams();
         params.height = dpToPx(300.0F);
@@ -622,8 +637,6 @@ public class LandingPage  extends AppCompatActivity implements LocationFragment.
     }
 
     public void swipeUp() {
-        Toast.makeText(getApplicationContext(), "Up swipe", Toast.LENGTH_SHORT).show();
-
         ConstraintSet constraintSet = new ConstraintSet();
         ConstraintLayout.LayoutParams params = (ConstraintLayout.LayoutParams) top_green_box.getLayoutParams();
         params.height = dpToPx(60.0F);
@@ -643,12 +656,32 @@ public class LandingPage  extends AppCompatActivity implements LocationFragment.
     }
 
 
-    public Vertex fromLabelToVertex (String searchTerm) {
-        // TODO make myLocation to always get updated to the user's current location
-        Vertex myLocation = new Vertex(100, 200, 3);
+    public Vertex getClosestMatchingVertex(String searchTerm) {
+        HashSet<Vertex> vertexSet = (HashSet<Vertex>) LocationsProvider.generateVertices(getApplicationContext());
+        HashMap<Vertex,Vertex> vertexMap = new HashMap<>();
+
+        for(Vertex vertex : vertexSet) {
+            vertexMap.put(vertex,vertex);
+        }
+
+        MapFragment.Point myLocationPoint = MapFragment.fromLatLngToPoint(new LatLng(myLocation.x, myLocation.y));
+        Vertex myLocationVertex = getNearestVertex(myLocationPoint.x, myLocationPoint.y, 2,960,vertexMap);
 
         if(searchTerm.equals("My location")) {
-            return myLocation;
+            LatLng latLng = new LatLng(myLocation.x, myLocation.y);
+            CameraUpdate cameraUpdate = CameraUpdateFactory.newLatLngZoom(latLng, 1);
+            if (myLocationMarker == null) {
+                MarkerOptions op = new MarkerOptions();
+                op.position(latLng);
+                Bitmap bMap = BitmapFactory.decodeResource(getResources(), R.drawable.mylocmap);
+                Bitmap bMapScaled = Bitmap.createScaledBitmap(bMap, dpToPx(32.0F), dpToPx(32.0F), true);
+                op.icon(BitmapDescriptorFactory.fromBitmap(bMapScaled));
+                myLocationMarker = MapFragment.googleMap.addMarker(op);
+            } else {
+                myLocationMarker.setPosition(latLng);
+            }
+            ((MapFragment) getFragmentManager().findFragmentById(R.id.map_fragment_dir)).googleMap.animateCamera(cameraUpdate);
+            return myLocationVertex;
         }
 
         HashMap<Vertex, String> bestVertices = new HashMap<>();
@@ -656,8 +689,6 @@ public class LandingPage  extends AppCompatActivity implements LocationFragment.
 
         ArrayList<String> searchArray = new ArrayList<>(
                 Arrays.asList(searchTerm.toLowerCase().split(" ")));
-
-        Set<Vertex> vertexSet = LocationsProvider.generateVertices(getApplicationContext());
 
         for (Vertex v : vertexSet) {
 
@@ -690,7 +721,7 @@ public class LandingPage  extends AppCompatActivity implements LocationFragment.
                 Vertex v = entry.getKey();
                 String label = entry.getValue();
 
-                int currDistance = VertexComparator.manhattanDistance(myLocation, v);
+                int currDistance = VertexComparator.manhattanDistance(myLocationVertex, v);
                 System.out.format("%s %s %d\n", v, label, currDistance);
 
                 if (currDistance < closest) {
@@ -861,8 +892,10 @@ public class LandingPage  extends AppCompatActivity implements LocationFragment.
         Vertex candidate = null;
         int bestDistance = Integer.MAX_VALUE;
         for (Vertex v : vMap.keySet()) {
+            Log.d("v", Integer.toString(v.getZ()));
+            Log.d("touch", Integer.toString(touched.getZ()));
             // Only consider it if they are on the same floor
-            if (v.getZ() != touched.getZ()) {
+            if (v.getZ()+2 != touched.getZ()) {
                 continue;
             }
 

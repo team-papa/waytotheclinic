@@ -8,16 +8,16 @@
         <item
             android:id="@+id/nav_first_floor"
             android:icon="@drawable/first_50"
-            android:title="First floor" />
+            android:title="Level 1" />
         <item
             android:id="@+id/nav_second_floor"
             android:icon="@drawable/second_50"
-            android:title="Second floor"
+            android:title="Level 2"
             android:checked="true"/>
         <item
             android:id="@+id/nav_third_floor"
             android:icon="@drawable/third_50"
-            android:title="Third floor" />
+            android:title="Level 3" />
     </group>
 
 </menu>

@@ -11,11 +11,6 @@ import com.google.android.gms.maps.model.TileProvider;
 import java.io.ByteArrayOutputStream;
 import java.util.List;
 
-
-/**
- * Created by Chris on 26/02/2018.
- */
-
 public class PathTileProvider implements TileProvider {
     private int TileWidth;
     private List<MapFragment.Point> path;
@@ -77,6 +72,8 @@ public class PathTileProvider implements TileProvider {
 
             canvas.drawLine(canvasAX, canvasAY, canvasBX, canvasBY, pathPaint);
         }
+
+
 
         return result;
     }

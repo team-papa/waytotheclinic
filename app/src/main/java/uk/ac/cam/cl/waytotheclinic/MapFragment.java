@@ -6,25 +6,18 @@ import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.graphics.Canvas;
 import android.graphics.Color;
-import android.graphics.Paint;
-import android.graphics.Point;
-import android.graphics.drawable.BitmapDrawable;
-import android.location.Location;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.constraint.ConstraintLayout;
 import android.support.constraint.ConstraintSet;
 import android.support.design.widget.FloatingActionButton;
-import android.support.v4.content.ContextCompat;
 import android.util.Log;
-import android.util.SparseArray;
 import android.util.TypedValue;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Button;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.TextView;
 
 import com.google.android.gms.maps.CameraUpdate;
@@ -33,12 +26,9 @@ import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapView;
 import com.google.android.gms.maps.MapsInitializer;
 import com.google.android.gms.maps.OnMapReadyCallback;
-import com.google.android.gms.maps.model.CircleOptions;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
-import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
-import com.google.android.gms.maps.model.Tile;
 import com.google.android.gms.maps.model.TileOverlay;
 import com.google.android.gms.maps.model.TileOverlayOptions;
 import com.google.android.gms.maps.model.TileProvider;
@@ -46,30 +36,23 @@ import com.google.android.gms.maps.model.UrlTileProvider;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
-import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.StringReader;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.nio.Buffer;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Scanner;
 
-import static android.content.ContentValues.TAG;
-import static uk.ac.cam.cl.waytotheclinic.LandingPage.history;
 import static uk.ac.cam.cl.waytotheclinic.LandingPage.searchString;
 
 public class MapFragment extends Fragment implements OnMapReadyCallback{
     MapView mapView = null;
-    GoogleMap googleMap;
+    static GoogleMap googleMap;
     private String[] populatedTiles;
     private int Floor = 1;
 
@@ -80,9 +63,13 @@ public class MapFragment extends Fragment implements OnMapReadyCallback{
     private PathTileProvider pathTileProvider;
     private LocTileProvider locTileProvider;
 
+
     private Marker mLocationMarker;
     private Marker mDestinationMarker;
 
+    /**
+     * This method is called once the map is available to be written to
+     */
     @Override
     public void onMapReady(final GoogleMap googleMap) {
         this.googleMap = googleMap;
@@ -93,12 +80,13 @@ public class MapFragment extends Fragment implements OnMapReadyCallback{
             TileProvider mapTileProvider = new UrlTileProvider(256, 256) {
                 @Override
                 public URL getTileUrl(int x, int y, int zoom) {
-//                    Log.d(TAG, "getTileUrl: getting " + x + ", " + y + ", " + zoom);
                     try {
+                        //if the tile is blank just use the blank tile
                         if (!tilePopulated(Floor, zoom, x, y))
-                            return getRemoteOrLocal("blank.png");
+                            return getCachedFileOrGetRemote("blank.png");
 
-                        return getRemoteOrLocal(String.format("TileMap%d/%d/%d/%d.png", Floor, zoom, x, y));
+                        //Otherwise return the correct tile
+                        return getCachedFileOrGetRemote(String.format("TileMap%d/%d/%d/%d.png", Floor, zoom, x, y));
                     } catch (MalformedURLException e) {
                         e.printStackTrace();
                     }
@@ -108,7 +96,8 @@ public class MapFragment extends Fragment implements OnMapReadyCallback{
                 private String baseTilePath = (getActivity().getExternalFilesDir(null).getAbsolutePath()) + "/TileStore/";
                 private String remoteTilePath = "http://cjj39.user.srcf.net/WayToTheClinic/";
 
-                public URL getRemoteOrLocal(String path) throws MalformedURLException {
+
+                public URL getCachedFileOrGetRemote(String path) throws MalformedURLException {
                     File local = new File(baseTilePath + path);
                     if(!local.exists()) {
                         //load data from server then write to local
@@ -146,34 +135,38 @@ public class MapFragment extends Fragment implements OnMapReadyCallback{
         pathTileProvider = new PathTileProvider(256, this);
         pathOverlay = googleMap.addTileOverlay(new TileOverlayOptions().zIndex(2).tileProvider(pathTileProvider));
         //endregion
+        Log.d("pathTileProvider", Boolean.toString(pathTileProvider != null));
 
         //region Location Provider
         locTileProvider = new LocTileProvider(256, this);
         locOverlay = googleMap.addTileOverlay(new TileOverlayOptions().zIndex(3).tileProvider(locTileProvider));
         //endregion
 
+        // Set initial floor to floor 2.
         this.setFloor(2);
 
 
         // When the map is pressed, a position in longitude/latitude for the click is returned.
-
         googleMap.setOnMapLongClickListener(new GoogleMap.OnMapLongClickListener() {
 
             @Override
             public void onMapLongClick(LatLng latLng) {
 
-                //Log.d("clicked values:", latLng.latitude + ":" + latLng.longitude);
-                setDestination(latLng);
+                if(getActivity().findViewById(R.id.bottom_white_box) != null) {
+                    setDestination(latLng);
+                }
+
             }
         });
-
     }
 
     public void setLocation(LatLng latLng){
+
         if (mLocationMarker == null) {
+
             MarkerOptions op = new MarkerOptions();
-            op.title("Current Location");
             op.position(latLng);
+
             Bitmap bMap = BitmapFactory.decodeResource(getResources(), R.drawable.mylocmap);
             Bitmap bMapScaled = Bitmap.createScaledBitmap(bMap, dpToPx(32.0F), dpToPx(32.0F), true);
             op.icon(BitmapDescriptorFactory.fromBitmap(bMapScaled));
@@ -181,7 +174,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback{
             CameraUpdate cameraUpdate = CameraUpdateFactory.newLatLngZoom(latLng, 1);
             googleMap.animateCamera(cameraUpdate);
         } else {
-            mLocationMarker.setPosition(latLng);
+            LandingPage.clickedLocationMarker.setPosition(latLng);
         }
 
         LandingPage.setCurrentLocation(new Point(latLng.latitude,latLng.longitude,1));
@@ -207,10 +200,8 @@ public class MapFragment extends Fragment implements OnMapReadyCallback{
 
         Point mapLoc = fromLatLngToPoint(latLng);
 
-        Log.d("Convert to Point:", mapLoc.x + " " + mapLoc.y);
 
         // Call getNearestVertex
-
         Context context = getActivity().getApplicationContext();
         HashSet<Vertex> vertexSet = (HashSet<Vertex>) LocationsProvider.generateVertices(context);
         HashMap<Vertex,Vertex> vertexMap = new HashMap<>();
@@ -219,7 +210,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback{
             vertexMap.put(vertex,vertex);
         }
 
-        Vertex closest = LandingPage.getNearestVertex(mapLoc.x,mapLoc.y,0,960,vertexMap);
+        Vertex closest = LandingPage.getNearestVertex(mapLoc.x,mapLoc.y,getFloor(),960,vertexMap);
 
         ArrayList<String> labelsList = closest.getLabels();
         if(labelsList != null && labelsList.size() != 0) {
@@ -246,6 +237,10 @@ public class MapFragment extends Fragment implements OnMapReadyCallback{
             constraintSet.connect(R.id.my_location_button, ConstraintSet.BOTTOM, R.id.bottom_white_box, ConstraintSet.TOP, dpToPx(16.0F));
             constraintSet.applyTo(main_layout);
 
+            // Close keyboard
+            InputMethodManager imm = (InputMethodManager) context.getSystemService(Context.INPUT_METHOD_SERVICE);
+            imm.hideSoftInputFromWindow(getActivity().getCurrentFocus().getWindowToken(), 0);
+
             search_term.setText(searchString);
             directions.setOnClickListener(new View.OnClickListener(){
                 @Override
@@ -261,13 +256,13 @@ public class MapFragment extends Fragment implements OnMapReadyCallback{
         mapView.invalidate();
     }
 
-    public Point fromLatLngToPoint(LatLng latLng) {
+    public static Point fromLatLngToPoint(LatLng latLng) {
         Double x = (latLng.longitude + 180) / 360;
         Double y = ((1 - Math.log(Math.tan(latLng.latitude * Math.PI / 180) + 1 / Math.cos(latLng.latitude * Math.PI / 180)) / Math.PI) / 2);
         return new Point(x, y, 0);
     };
 
-    public LatLng fromPointToLatLng(Point point){
+    public static LatLng fromPointToLatLng(Point point){
         Double lng = point.x * 360 - 180;
         Double n = Math.PI - 2 * Math.PI * point.y;
         Double lat = (180 / Math.PI * Math.atan(0.5 * (Math.exp(n) - Math.exp(-n))));
@@ -275,6 +270,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback{
     };
 
 
+    //checks whether the tile is in the populated tiles list
     private boolean tilePopulated(int f, int z, int x, int y){
         String check = String.format("(%d,%d,%d,%d)", f,z,x,y);
         for(String s : populatedTiles){
@@ -298,7 +294,33 @@ public class MapFragment extends Fragment implements OnMapReadyCallback{
         return Floor;
     }
 
+    public List<Edge> truncatePath(List<Edge> edgesToSkipPast,
+                                   List<Edge> edgePath, int instructionNumber) {
+
+        ArrayList<Edge> remainingPath = new ArrayList<>();
+
+        if (instructionNumber == 0) return remainingPath;
+
+        Edge edgeToSkipPast = edgesToSkipPast.get(instructionNumber - 1);
+
+        int i = 0;
+        while (!edgePath.get(i).equals(edgeToSkipPast)) {
+            i++;
+        }
+
+        i++; // skip past it too
+
+        // put rest in remainingPath and return it
+        while (i < edgePath.size()) {
+            remainingPath.add(edgePath.get(i));
+        }
+
+
+        return remainingPath;
+    }
+
     public void setPath(List<Point> path){
+        Log.d("pathTileProviderBroke", Boolean.toString(pathTileProvider != null));
         pathTileProvider.setPath(path);
 
         //invalidate cache to cause update
@@ -307,6 +329,10 @@ public class MapFragment extends Fragment implements OnMapReadyCallback{
     }
 
     public void setPath(List<Edge> edgePath, double imgSize){
+        if(pathOverlay != null) {
+//            pathOverlay.clearTileCache();
+        }
+
         final int edgeZOffset = 2;
 
         List<Point> result = new ArrayList<>();
@@ -323,31 +349,11 @@ public class MapFragment extends Fragment implements OnMapReadyCallback{
         setPath(result);
     }
 
-    private Point getPointFromVertex(Vertex v, int ZOffset, double imgSize){
+    public static Point getPointFromVertex(Vertex v, int ZOffset, double imgSize){
         double x = ((double)v.getX())/imgSize;
         double y = ((double)v.getY())/imgSize;
         int floor = v.getZ() + ZOffset;
         return new Point(x, y, floor);
-    }
-
-    public void setLocation(Point loc){
-
-        locTileProvider.setLocation(loc);
-
-        googleMap.addMarker( new MarkerOptions()
-                .title("Current Location")
-                .position( new LatLng( loc.x, loc.y ))
-        );
-        /*googleMap.setOnCameraMoveListener(new GoogleMap.OnCameraMoveListener() {
-            @Override
-            public void onCameraMove() {
-                Log.d("MapFragment", googleMap.getCameraPosition().toString());
-            }
-        });*/
-
-        //invalidate cache to cause update
-        locOverlay.clearTileCache();
-        mapView.invalidate();
     }
 
     //region android boilerplate to get mapView working
