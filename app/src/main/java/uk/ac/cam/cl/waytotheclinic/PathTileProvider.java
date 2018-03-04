@@ -35,7 +35,7 @@ public class PathTileProvider implements TileProvider {
         return new Tile(TileWidth, TileWidth, bitmapData);
     }
 
-    static int pathWidth = 1;
+    static int pathWidth = 3;
     private Bitmap constructFromPath(List<MapFragment.Point> points, int x, int y, int zoom){
         Bitmap result = Bitmap.createBitmap(TileWidth, TileWidth, Bitmap.Config.ARGB_8888);
         Canvas canvas = new Canvas(result);

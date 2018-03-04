@@ -46,6 +46,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.Scanner;
 
 import static uk.ac.cam.cl.waytotheclinic.LandingPage.searchString;
@@ -91,8 +92,8 @@ public class MapFragment extends Fragment implements OnMapReadyCallback{
                 }
 
                 private String baseTilePath = (getActivity().getExternalFilesDir(null).getAbsolutePath()) + "/TileStore/";
-                private String remoteTilePath = "http://cjj39.user.srcf.net/WayToTheClinic/";
-
+//                private String remoteTilePath = "http://cjj39.user.srcf.net/WayToTheClinic/";
+                private String remoteTilePath = "https://s3.eu-west-2.amazonaws.com/waytoclinic/Finalised+Maps/";
 
                 public URL getCachedFileOrGetRemote(String path) throws MalformedURLException {
                     File local = new File(baseTilePath + path);
@@ -363,12 +364,15 @@ public class MapFragment extends Fragment implements OnMapReadyCallback{
             public void run() {
                 URL url = null;
                 try {
-                    url = new URL("http://cjj39.user.srcf.net/WayToTheClinic/populatedTiles.txt");
+//                    url = new URL("http://cjj39.user.srcf.net/WayToTheClinic/populatedTiles.txt");
+                    url = new URL("https://s3.eu-west-2.amazonaws.com/waytoclinic/Finalised+Maps/populatedTiles.txt");
                     Scanner s = new Scanner(new BufferedInputStream(url.openStream()));
                     String input = s.nextLine();
                     String[] splitInput = input.split(";");
                     populatedTiles = Arrays.copyOfRange(splitInput, 0, splitInput.length - 1);
                 } catch (IOException e) {
+                    e.printStackTrace();
+                } catch (NoSuchElementException e) {
                     e.printStackTrace();
                 }
             }

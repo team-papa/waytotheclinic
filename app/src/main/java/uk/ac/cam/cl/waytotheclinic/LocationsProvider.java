@@ -15,7 +15,7 @@ public class LocationsProvider {
     public static Set<Vertex> generateVertices(Context context) {
         try {
             ObjectInputStream ois = new ObjectInputStream(new BufferedInputStream(
-                    context.getResources().getAssets().open("vertexSetFinal.ser")));
+                    context.getResources().getAssets().open("vertexSetSave.ser")));
 
             HashSet<Vertex> vertexSet = (HashSet<Vertex>) ois.readObject();
 
