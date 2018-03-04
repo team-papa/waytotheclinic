@@ -1,5 +1,6 @@
 package uk.ac.cam.cl.waytotheclinic;
 
+import android.app.Activity;
 import android.app.Fragment;
 import android.content.Context;
 import android.content.Intent;
@@ -16,6 +17,7 @@ import android.util.TypedValue;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.TextView;
 
 import com.google.android.gms.maps.CameraUpdate;
@@ -125,6 +127,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback{
         pathTileProvider = new PathTileProvider(256, this);
         pathOverlay = googleMap.addTileOverlay(new TileOverlayOptions().zIndex(2).tileProvider(pathTileProvider));
         //endregion
+        Log.d("pathTileProvider", Boolean.toString(pathTileProvider != null));
 
         //region Location Provider
         locTileProvider = new LocTileProvider(256, this);
@@ -145,7 +148,6 @@ public class MapFragment extends Fragment implements OnMapReadyCallback{
                 }
             }
         });
-
     }
 
     public void setLocation(LatLng latLng){
@@ -202,6 +204,10 @@ public class MapFragment extends Fragment implements OnMapReadyCallback{
             constraintSet.clone(main_layout);
             constraintSet.connect(R.id.my_location_button, ConstraintSet.BOTTOM, R.id.bottom_white_box, ConstraintSet.TOP, dpToPx(16.0F));
             constraintSet.applyTo(main_layout);
+
+            // Close keyboard
+            InputMethodManager imm = (InputMethodManager) context.getSystemService(Context.INPUT_METHOD_SERVICE);
+            imm.hideSoftInputFromWindow(getActivity().getCurrentFocus().getWindowToken(), 0);
 
             search_term.setText(searchString);
             directions.setOnClickListener(new View.OnClickListener(){
@@ -281,6 +287,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback{
     }
 
     public void setPath(List<Point> path){
+        Log.d("pathTileProviderBroke", Boolean.toString(pathTileProvider != null));
         pathTileProvider.setPath(path);
 
         //invalidate cache to cause update
@@ -289,6 +296,10 @@ public class MapFragment extends Fragment implements OnMapReadyCallback{
     }
 
     public void setPath(List<Edge> edgePath, double imgSize){
+        if(pathOverlay != null) {
+//            pathOverlay.clearTileCache();
+        }
+
         final int edgeZOffset = 2;
 
         List<Point> result = new ArrayList<>();

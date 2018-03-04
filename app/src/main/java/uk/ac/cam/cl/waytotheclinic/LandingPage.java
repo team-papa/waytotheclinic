@@ -256,6 +256,10 @@ public class LandingPage  extends AppCompatActivity implements LocationFragment.
                 }
 
 
+                // Move camera to focus on destination
+                CameraUpdate cameraUpdate = CameraUpdateFactory.newLatLngZoom(latLng, 1);
+                MapFragment.googleMap.animateCamera(cameraUpdate);
+
                 // Make bottom bar containing ->DIRECTIONS button appear
                 bottom_white_box.setVisibility(View.VISIBLE);
                 ae_button.setVisibility(View.INVISIBLE);
@@ -454,6 +458,11 @@ public class LandingPage  extends AppCompatActivity implements LocationFragment.
                             if (numberOfTaps == 3) {
                                 Toast.makeText(getApplicationContext(), "Here's the way to the closest A&E room", Toast.LENGTH_SHORT).show();
                                 // TODO show path to nearest AE room
+                                Intent intent = new Intent(getBaseContext(), DirectionsPage.class);
+                                searchString = "A and E";
+                                intent.putExtra("ae", true);
+                                startActivity(intent);
+
 
                             } else if (numberOfTaps == 2) {
                                 handler.postDelayed(new Runnable() {
