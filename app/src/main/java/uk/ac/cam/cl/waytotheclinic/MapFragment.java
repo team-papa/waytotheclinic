@@ -92,7 +92,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback{
                 }
 
                 private String baseTilePath = (getActivity().getExternalFilesDir(null).getAbsolutePath()) + "/TileStore/";
-//                private String remoteTilePath = "http://cjj39.user.srcf.net/WayToTheClinic/";
+                //                private String remoteTilePath = "http://cjj39.user.srcf.net/WayToTheClinic/";
                 private String remoteTilePath = "https://s3.eu-west-2.amazonaws.com/waytoclinic/Finalised+Maps/";
 
                 public URL getCachedFileOrGetRemote(String path) throws MalformedURLException {
