@@ -112,7 +112,7 @@ public class LandingPage  extends AppCompatActivity implements LocationFragment.
     static Vertex toClosestVertex;
     static String searchString;
 
-    public static MapFragment.Point myLocation = new MapFragment.Point(26, 98.6,2);;
+    public static MapFragment.Point myLocation = new MapFragment.Point(26, 98.6,2);
     public static Marker myLocationMarker;
     public static MapFragment.Point clickedLocation;
     public static Marker clickedLocationMarker;
