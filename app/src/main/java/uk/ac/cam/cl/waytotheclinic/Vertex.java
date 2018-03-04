@@ -10,7 +10,7 @@ public class Vertex implements Serializable {
     private Set<Vertex> adjacentVertices;
     private int x;
     private int y;
-    private int z; // which level we're on
+    private int z; // which level we're on, zero-indexed (eg: z=1 means we're on level 2)
     private boolean intersection = false;
     private ArrayList<String> labels;
     private ArrayList<Edge> inEdges;

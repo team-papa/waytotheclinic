@@ -20,13 +20,13 @@ public class Edge implements Serializable {
         this.cost = cost;
         this.labels = out.getLabels();
 
-        // for edges, in: A and out: B denotes A -> B
+        // "in: A, out: B" means A -> B
         in.addOutEdge(this);
         out.addInEdge(this);
     }
 
     public Edge(Vertex in, Vertex out, int cost, double angle) {
-        this(in, out, cost); // cool
+        this(in, out, cost);
         this.angle = angle;
     }
 
@@ -41,17 +41,16 @@ public class Edge implements Serializable {
     @Override
     public String toString() {
         String str = "";
-//        str +=  "\n Edge : " + labels + "\n";
-//        str +=  " In Vertex : " + in.toString() + "\n";
-//        str +=  " Out Vertex : " + out.toString() + "\n";
-//        str +=  " Cost: " + cost + "\n";
-//        str +=  " Angle: " + angle + "\n";
-        str +=  in + " " + out;
+        str +=  "\n Edge : " + labels + "\n";
+        str +=  " In Vertex : " + in.toString() + "\n";
+        str +=  " Out Vertex : " + out.toString() + "\n";
+        str +=  " Cost: " + cost + "\n";
+        str +=  " Angle: " + angle + "\n";
 
         return str;
     }
 
-    public int getCost() { return cost; } // since we're using bird distance I don't think we need this
+    public int getCost() { return cost; }
 
     public double getAngle() { return angle; }
 

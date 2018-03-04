@@ -76,6 +76,9 @@ public class PathFinder {
     }
 
 
+    // Given a list of (connected) edges representing a path, return a list of Instructions
+    // explaining how to follow the path (also returns a list of which edges each instruction
+    // corresponds to for path-updating with position tracking which could be implemented in the future)
     public static Pair<List<Instruction>, List<Edge>> getTextDirections(List<Edge> path) {
         List<Instruction> directions = new ArrayList<>();
         List<Edge> whichEdge = new ArrayList<>();
@@ -223,7 +226,7 @@ public class PathFinder {
         return new Pair<>(directions, whichEdge);
     }
 
-
+    // Gets all the instructinos stored in the straightLabelList (used by getTextDirections)
     private static String flushStraightLabelList(List<String> straightLabelList) {
 
         String textDirection = "";
@@ -249,6 +252,7 @@ public class PathFinder {
     }
 
 
+    // Choose a vertex from those adjacent to us to explore next (used by getPath)
     private Vertex pickBestNext(Set<Vertex> openSet, HashMap<Vertex, Integer> fScore) {
         Vertex toReturn = null;
         int best = Integer.MAX_VALUE;
@@ -262,6 +266,8 @@ public class PathFinder {
     }
 
 
+    // Once we find the end of the path, use this to reconstruct the path
+    // we took to get here (used by getPath)
     public List<Edge> reconstructEdgePath(HashMap<Vertex, Vertex> cameFrom,
                                           HashMap<Vertex, Edge> cameFromEdge, Vertex current) {
         List<Edge> totalPath = new ArrayList<>();
@@ -279,6 +285,7 @@ public class PathFinder {
     }
 
 
+    // Implements Python3-like .get(index, if_null) functionality
     public Integer tryGet(Vertex v, HashMap<Vertex, Integer> m) {
         Integer d = m.get(v);
         return d != null ? d : Integer.MAX_VALUE;
