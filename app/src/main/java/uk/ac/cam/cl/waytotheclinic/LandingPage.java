@@ -459,7 +459,7 @@ public class LandingPage  extends AppCompatActivity implements LocationFragment.
                                 Toast.makeText(getApplicationContext(), "Here's the way to Accident & Emergency ", Toast.LENGTH_SHORT).show();
                                 // TODO show path to nearest AE room
                                 Intent intent = new Intent(getBaseContext(), DirectionsPage.class);
-                                searchString = "A and E";
+                                searchString = "Accident & Emergency";
                                 intent.putExtra("ae", true);
                                 startActivity(intent);
 
