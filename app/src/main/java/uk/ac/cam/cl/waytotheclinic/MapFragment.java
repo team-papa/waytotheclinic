@@ -335,7 +335,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback{
 //            pathOverlay.clearTileCache();
         }
 
-        final int edgeZOffset = 2;
+        final int edgeZOffset = 1;
 
         List<Point> result = new ArrayList<>();
         if(edgePath.size() == 0)

@@ -888,6 +888,8 @@ public class LandingPage  extends AppCompatActivity implements LocationFragment.
     // xd and yd are in [0,1]
     public static Vertex getNearestVertex(double xd, double yd, int floor,
                                           double squareSideLength, Map<Vertex, Vertex> vMap) {
+        int Z_OFFSET = 1;
+
         int nearestX = (int) (xd * squareSideLength);
         int nearestY = (int) (yd * squareSideLength);
 
@@ -899,7 +901,7 @@ public class LandingPage  extends AppCompatActivity implements LocationFragment.
             Log.d("v", Integer.toString(v.getZ()));
             Log.d("touch", Integer.toString(touched.getZ()));
             // Only consider it if they are on the same floor
-            if (v.getZ()+2 != touched.getZ()) {
+            if (v.getZ() + Z_OFFSET != touched.getZ()) {
                 continue;
             }
 
