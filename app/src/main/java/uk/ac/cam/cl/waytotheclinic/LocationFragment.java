@@ -76,16 +76,15 @@ public class LocationFragment extends Fragment {
     @Override
     public void onAttach(Context context) {
         super.onAttach(context);
-
         callback = (LocationListener) context;
     }
 
-    @Override
-    public void onDetach() {
+    //@Override
+    /*public void onDetach() {
         super.onDetach();
-
+        Log.d("Detach", "Call");
         callback = null;
-    }
+    }*/
 
     @Override
     public void onResume() {
