@@ -268,7 +268,7 @@ public class DirectionsPage extends LandingPage {
             public void onClick(View view) {
                 Toast.makeText(getApplicationContext(), "My location!", Toast.LENGTH_SHORT).show();
                 LatLng latLng = new LatLng(myLocation.x, myLocation.y);
-                CameraUpdate cameraUpdate = CameraUpdateFactory.newLatLngZoom(latLng, 1);
+                CameraUpdate cameraUpdate = CameraUpdateFactory.newLatLngZoom(latLng, 3);
                 if (myLocationMarker_dir == null) {
                     MarkerOptions op = new MarkerOptions();
                     op.position(latLng);
@@ -282,7 +282,6 @@ public class DirectionsPage extends LandingPage {
                 map_fragment_dir.googleMap.animateCamera(cameraUpdate);
             }
         });
-
 
     }
 

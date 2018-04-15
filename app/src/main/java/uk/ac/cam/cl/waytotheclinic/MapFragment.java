@@ -72,6 +72,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback{
     public void onMapReady(final GoogleMap googleMap) {
         this.googleMap = googleMap;
         googleMap.setMapType(GoogleMap.MAP_TYPE_NONE);
+        googleMap.setMinZoomPreference(3);
 
         //region Map Provider
         {
@@ -80,10 +81,14 @@ public class MapFragment extends Fragment implements OnMapReadyCallback{
                 public URL getTileUrl(int x, int y, int zoom) {
                     try {
                         //if the tile is blank just use the blank tile
-                        if (!tilePopulated(Floor, zoom, x, y))
+                        if (!tilePopulated(Floor, zoom, x, y)) {
+                            Log.d("TILES", String.format("getting BLANK", Floor, zoom, x, y));
                             return getCachedFileOrGetRemote("blank.png");
 
+                        }
+
                         //Otherwise return the correct tile
+                        Log.d("TILES", String.format("getting TileMap%d/%d/%d/%d.png", Floor, zoom, x, y));
                         return getCachedFileOrGetRemote(String.format("TileMap%d/%d/%d/%d.png", Floor, zoom, x, y));
                     } catch (MalformedURLException e) {
                         e.printStackTrace();
@@ -95,9 +100,11 @@ public class MapFragment extends Fragment implements OnMapReadyCallback{
                 //                private String remoteTilePath = "http://cjj39.user.srcf.net/WayToTheClinic/";
                 private String remoteTilePath = "https://s3.eu-west-2.amazonaws.com/waytoclinic/Finalised+Maps/";
 
+                boolean cachingOn = false;
+
                 public URL getCachedFileOrGetRemote(String path) throws MalformedURLException {
                     File local = new File(baseTilePath + path);
-                    if(!local.exists()) {
+                    if (!cachingOn || !local.exists()) {
                         //load data from server then write to local
                         URL remoteURL = new URL(remoteTilePath + path);
 
@@ -176,7 +183,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback{
             LandingPage.myLocationMarker = googleMap.addMarker(op);
 
             // Pan camera to centre on location, since it is the first time
-            CameraUpdate cameraUpdate = CameraUpdateFactory.newLatLngZoom(latLng, 1);
+            CameraUpdate cameraUpdate = CameraUpdateFactory.newLatLngZoom(latLng, 3);
             googleMap.animateCamera(cameraUpdate);
 
         } else {
@@ -184,6 +191,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback{
             // Change position of old location marker
             // Don't pan camera, as it would not be a good user experience for the camera
             // to pan on every update
+
             LandingPage.myLocationMarker.setPosition(latLng);
         }
 
@@ -234,7 +242,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback{
             Log.d("Closest Point:", topLabel.toString());
 
             // Pan camera to centre on the selected destination
-            CameraUpdate cameraUpdate = CameraUpdateFactory.newLatLngZoom(latLng, 1);
+            CameraUpdate cameraUpdate = CameraUpdateFactory.newLatLngZoom(latLng, 3);
             googleMap.animateCamera(cameraUpdate);
 
             searchString = topLabel;
@@ -351,7 +359,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback{
 //            pathOverlay.clearTileCache();
         }
 
-        final int edgeZOffset = 1;
+        final int edgeZOffset = 1 ;
 
         List<Point> result = new ArrayList<>();
         if(edgePath.size() == 0)
@@ -412,7 +420,14 @@ public class MapFragment extends Fragment implements OnMapReadyCallback{
 //                    url = new URL("http://cjj39.user.srcf.net/WayToTheClinic/populatedTiles.txt");
                     url = new URL("https://s3.eu-west-2.amazonaws.com/waytoclinic/Finalised+Maps/populatedTiles.txt");
                     Scanner s = new Scanner(new BufferedInputStream(url.openStream()));
+
                     String input = s.nextLine();
+                    while (s.hasNext()) {
+                        input += s.nextLine();
+                    }
+                    input.replaceAll("\n", "");
+
+
                     String[] splitInput = input.split(";");
                     populatedTiles = Arrays.copyOfRange(splitInput, 0, splitInput.length - 1);
                 } catch (IOException e) {

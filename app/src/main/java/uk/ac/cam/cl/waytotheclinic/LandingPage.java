@@ -259,7 +259,7 @@ public class LandingPage  extends AppCompatActivity implements LocationFragment.
 
 
                 // Move camera to focus on destination
-                CameraUpdate cameraUpdate = CameraUpdateFactory.newLatLngZoom(latLng, 1);
+                CameraUpdate cameraUpdate = CameraUpdateFactory.newLatLngZoom(latLng, 3);
                 MapFragment.googleMap.animateCamera(cameraUpdate);
 
                 // Make bottom bar containing ->DIRECTIONS button appear
@@ -404,7 +404,7 @@ public class LandingPage  extends AppCompatActivity implements LocationFragment.
             public void onClick(View view) {
                 Toast.makeText(getApplicationContext(), "My location!", Toast.LENGTH_SHORT).show();
                 LatLng latLng = new LatLng(myLocation.x, myLocation.y);
-                CameraUpdate cameraUpdate = CameraUpdateFactory.newLatLngZoom(latLng, 1);
+                CameraUpdate cameraUpdate = CameraUpdateFactory.newLatLngZoom(latLng, 3);
                 if (myLocationMarker == null) {
                     MarkerOptions op = new MarkerOptions();
                     op.position(latLng);
@@ -671,7 +671,7 @@ public class LandingPage  extends AppCompatActivity implements LocationFragment.
 
         if(searchTerm.equals("My location")) {
             LatLng latLng = new LatLng(myLocation.x, myLocation.y);
-            CameraUpdate cameraUpdate = CameraUpdateFactory.newLatLngZoom(latLng, 1);
+            CameraUpdate cameraUpdate = CameraUpdateFactory.newLatLngZoom(latLng, 3);
             if (myLocationMarker == null) {
                 MarkerOptions op = new MarkerOptions();
                 op.position(latLng);
